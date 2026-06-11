@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { guideMeta, guideSections, navGroups } from "../content";
+import { SupportModal } from "./SupportModal";
 
 export function SiteLayout() {
   const location = useLocation();
   const pathSlug = location.pathname === "/" ? "overview" : location.pathname.replace(/^\//, "");
   const currentIndex = guideSections.findIndex((section) => section.slug === pathSlug);
   const progress = Math.round(((currentIndex + 1) / guideSections.length) * 100);
+  const [supportOpen, setSupportOpen] = useState(false);
 
   return (
     <div className="docs-shell">
@@ -53,10 +56,20 @@ export function SiteLayout() {
             <span className="top-kicker">Публичная инструкция</span>
             <strong>{guideMeta.title}</strong>
           </div>
-          <a className="support-link" href={`mailto:${guideMeta.supportEmail}`}>Поддержка</a>
+          <button
+            className="support-link"
+            type="button"
+            onClick={() => setSupportOpen(true)}
+            aria-haspopup="dialog"
+          >
+            Поддержка
+          </button>
         </header>
+
         <Outlet />
       </div>
+
+      <SupportModal open={supportOpen} onClose={() => setSupportOpen(false)} />
     </div>
   );
 }
