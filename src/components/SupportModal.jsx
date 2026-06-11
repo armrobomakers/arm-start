@@ -128,12 +128,13 @@ export function SupportModal({ open, onClose }) {
             </label>
 
             <label className="support-field">
-              <span>Контакт</span>
+              <span>Контакт *</span>
               <input
                 value={form.contact}
                 onChange={(event) => setForm((current) => ({ ...current, contact: event.target.value }))}
                 placeholder="Telegram, email или телефон"
                 autoComplete="email"
+                required
               />
             </label>
 
