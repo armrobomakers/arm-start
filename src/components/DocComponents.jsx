@@ -86,13 +86,58 @@ export function ScreenshotGrid({ images = [] }) {
 export function CopyBlock({ block }) {
   if (!block) return null;
 
+  const lines = String(block.text || "").split("\n");
+
   return (
     <div className="copy-block">
       <div className="copy-head">
         <span>{block.label}</span>
         <small>скопируйте и замените данные в скобках</small>
       </div>
-      <pre>{renderRichText(block.text)}</pre>
+      <div className="copy-body" aria-label={block.label}>
+        {lines.map((line, index) => {
+          const trimmed = line.trim();
+
+          if (!trimmed) {
+            return <div className="copy-spacer" key={`spacer-${index}`} />;
+          }
+
+          const labeledUrl = trimmed.match(/^(.+?):\s*(https?:\/\/\S+)$/);
+          if (labeledUrl) {
+            return (
+              <div className="copy-line copy-line-link" key={`line-${index}`}>
+                <span className="copy-line-label">{labeledUrl[1]}</span>
+                <a className="copy-link-pill" href={labeledUrl[2]} target="_blank" rel="noreferrer">
+                  {labeledUrl[2]}
+                </a>
+              </div>
+            );
+          }
+
+          const urlOnly = trimmed.match(/^(https?:\/\/\S+)$/);
+          if (urlOnly) {
+            return (
+              <a className="copy-link-pill copy-link-block" key={`line-${index}`} href={urlOnly[1]} target="_blank" rel="noreferrer">
+                {urlOnly[1]}
+              </a>
+            );
+          }
+
+          if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+            return (
+              <a className="copy-link-pill copy-link-block" key={`line-${index}`} href={`mailto:${trimmed}`}>
+                {trimmed}
+              </a>
+            );
+          }
+
+          return (
+            <p className="copy-line copy-line-text" key={`line-${index}`}>
+              {renderRichText(trimmed)}
+            </p>
+          );
+        })}
+      </div>
     </div>
   );
 }
