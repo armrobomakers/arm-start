@@ -1,10 +1,13 @@
+import { useEffect } from "react";
 import { CardGrid, Callout, CopyBlock, PageNav, Prerequisites, ScreenshotGrid, StepList } from "../components/DocComponents";
 import { guideMeta, sectionsBySlug } from "../content";
-import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export function DocPage({ slug }) {
   const section = sectionsBySlug[slug] || sectionsBySlug.overview;
-  useDocumentTitle(`${section.title} — ARM Guide`);
+
+  useEffect(() => {
+    document.title = `${section.title} — ARM Guide`;
+  }, [section.title]);
 
   const isOverview = section.slug === "overview";
 

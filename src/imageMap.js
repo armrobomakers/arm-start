@@ -1,35 +1,35 @@
-import page_1 from "../pdf_pages/page_1.png";
-import page_2 from "../pdf_pages/page_2.png";
-import page_3 from "../pdf_pages/page_3.png";
-import page_4 from "../pdf_pages/page_4.png";
-import page_6 from "../pdf_pages/page_6.png";
-import page_7 from "../pdf_pages/page_7.png";
-import page_8 from "../pdf_pages/page_8.png";
-import page_9 from "../pdf_pages/page_9.png";
-import page_10 from "../pdf_pages/page_10.png";
-import page_11 from "../pdf_pages/page_11.png";
-import page_12 from "../pdf_pages/page_12.png";
-import page_13 from "../pdf_pages/page_13.png";
-import page_14 from "../pdf_pages/page_14.png";
-import page_15 from "../pdf_pages/page_15.png";
-import page_16 from "../pdf_pages/page_16.png";
-import page_17 from "../pdf_pages/page_17.png";
+import reg02 from "./assets/instruction/reg02.png";
+import reg03 from "./assets/instruction/reg03.png";
+import reg04 from "./assets/instruction/reg04.png";
+import reg05 from "./assets/instruction/reg05.png";
+import reg06 from "./assets/instruction/reg06.png";
+import reg07 from "./assets/instruction/reg07.png";
+import reg08 from "./assets/instruction/reg08.png";
+import reg09 from "./assets/instruction/reg09.png";
+import reg10 from "./assets/instruction/reg10.png";
+import reg11 from "./assets/instruction/reg11.png";
+import reg12 from "./assets/instruction/reg12.png";
+import reg13 from "./assets/instruction/reg13.png";
+import reg14 from "./assets/instruction/reg14.png";
+import reg15 from "./assets/instruction/reg15.png";
+import reg16 from "./assets/instruction/reg16.png";
+import reg17 from "./assets/instruction/reg17.png";
 
 export const imageMap = {
-  page_1,
-  page_2,
-  page_3,
-  page_4,
-  page_6,
-  page_7,
-  page_8,
-  page_9,
-  page_10,
-  page_11,
-  page_12,
-  page_13,
-  page_14,
-  page_15,
-  page_16,
-  page_17,
+  reg02,
+  reg03,
+  reg04,
+  reg05,
+  reg06,
+  reg07,
+  reg08,
+  reg09,
+  reg10,
+  reg11,
+  reg12,
+  reg13,
+  reg14,
+  reg15,
+  reg16,
+  reg17,
 };
