@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { CardGrid, Callout, CopyBlock, PageNav, Prerequisites, ScreenshotGrid, StepList } from "../components/DocComponents";
 import { guideMeta, sectionsBySlug } from "../content";
+import brandLogo from "../assets/brand/logo.svg";
 
 export function DocPage({ slug }) {
   const section = sectionsBySlug[slug] || sectionsBySlug.overview;
@@ -18,6 +19,7 @@ export function DocPage({ slug }) {
           <p className="eyebrow">{section.eyebrow}</p>
           <h1>{section.title}</h1>
           <p>{section.lead}</p>
+          {isOverview ? <img className="hero-logo" src={brandLogo} alt="ARM AI Robo Makers" /> : null}
           {isOverview ? (
             <div className="hero-actions">
               <a className="primary-action" href={guideMeta.tickmillLink} target="_blank" rel="noreferrer">

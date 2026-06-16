@@ -3,7 +3,7 @@ export const guideMeta = {
   subtitle:
     "Пошаговая инструкция: регистрация в ARM, подписка, регистрация и верификация Tickmill, пополнение и подключение к PAMM ARM.",
   version: "ARM x Tickmill",
-  supportEmail: "support@tickmill.com",
+  supportEmail: "armrobomakers@gmail.com",
   tickmillLink: "https://tickmill.link/4lT792J",
   ibCode: "IB80129482",
   pammMaster: "55770045",

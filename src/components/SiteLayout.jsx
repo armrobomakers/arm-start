@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { guideMeta, guideSections, navGroups } from "../content";
+import brandMark from "../assets/brand/favicon.svg";
 import { SupportModal } from "./SupportModal";
 
 export function SiteLayout() {
@@ -14,10 +15,10 @@ export function SiteLayout() {
     <div className="docs-shell">
       <aside className="sidebar">
         <Link className="brand" to="/" aria-label="На главную">
-          <span className="brand-mark">ARM</span>
-          <span>
-            <strong>Investor Guide</strong>
-            <small>{guideMeta.version}</small>
+          <img className="brand-icon" src={brandMark} alt="" aria-hidden="true" />
+          <span className="brand-copy">
+            <strong>ARM</strong>
+            <small>AI Robo Makers</small>
           </span>
         </Link>
 
