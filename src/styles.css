@@ -450,7 +450,9 @@ h1 {
   line-height: .95;
   letter-spacing: -.055em;
   text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: auto;
 }
 .hero p:not(.eyebrow) {
   max-width: 760px;
@@ -794,7 +796,7 @@ h1 {
   }
   .hero, .hero-overview { padding: 24px; border-radius: 20px; }
   .hero-logo { width: min(250px, 100%); }
-  h1 { font-size: clamp(24px, 9vw, 34px); line-height: .94; }
+  h1 { font-size: clamp(22px, 8vw, 32px); line-height: .96; letter-spacing: -.045em; }
   .hero p:not(.eyebrow) { font-size: 16px; }
   .prep-grid { grid-template-columns: 1fr; }
   .step-card { grid-template-columns: 1fr; }
