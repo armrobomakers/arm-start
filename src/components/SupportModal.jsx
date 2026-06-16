@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
-import { guideMeta } from "../content";
+import { sectionsBySlug } from "../content";
 
 const initialForm = {
   name: "",
   contact: "",
   message: "",
 };
+
+function getCurrentPageLabel(pathname) {
+  const slug = pathname === "/" ? "overview" : pathname.replace(/^\//, "");
+  return sectionsBySlug[slug]?.title || pathname || "Главная";
+}
 
 export function SupportModal({ open, onClose }) {
   const [form, setForm] = useState(initialForm);
@@ -75,6 +80,7 @@ export function SupportModal({ open, onClose }) {
   }
 
   const canSubmit = form.name.trim() && form.contact.trim() && form.message.trim() && status !== "sending";
+  const currentPageLabel = getCurrentPageLabel(window.location.pathname);
 
   return (
     <div className="support-overlay" role="dialog" aria-modal="true" aria-labelledby="support-title">
@@ -83,17 +89,14 @@ export function SupportModal({ open, onClose }) {
         <div className="support-head">
           <div>
             <p className="eyebrow">Поддержка</p>
-            <h2 id="support-title">Заявка в общий чат</h2>
+            <h2 id="support-title">Связаться с поддержкой</h2>
           </div>
           <button className="support-close" type="button" onClick={onClose} aria-label="Закрыть форму">
             ×
           </button>
         </div>
 
-        <p className="support-copy">
-          Пользователь оставляет короткую заявку прямо на сайте, а мы получаем её в Telegram-чате.
-          Это быстрее почты и удобнее для разбора входящих.
-        </p>
+        <p className="support-copy">Опишите вопрос или что именно не получается, и мы поможем разобраться.</p>
 
         {status === "success" ? (
           <div className="support-success">
@@ -149,8 +152,10 @@ export function SupportModal({ open, onClose }) {
             </label>
 
             <div className="support-meta support-field-wide">
-              <span>Сейчас открыта страница: {window.location.pathname}</span>
-              <span>Если форма не отправится, напишите на <a href={`mailto:${guideMeta.supportEmail}`}>{guideMeta.supportEmail}</a>.</span>
+              <span>Сейчас открыта страница: {currentPageLabel}</span>
+              <span>
+                Если форма не отправится, напишите на <a href="mailto:armrobomakers@gmail.com">armrobomakers@gmail.com</a>.
+              </span>
             </div>
 
             {error ? <div className="support-error support-field-wide">{error}</div> : null}
