@@ -760,15 +760,38 @@ h1 {
 }
 
 @media (max-width: 640px) {
+  .docs-shell {
+    display: flex;
+    flex-direction: column;
+  }
+  .docs-main {
+    order: 1;
+  }
+  .sidebar {
+    order: 2;
+  }
   .sidebar { padding: 14px; }
   .brand { margin-bottom: 12px; }
   .progress-card { margin-bottom: 14px; }
   .side-nav { display: block; }
   .nav-group { margin-bottom: 14px; }
   .side-link { min-height: 34px; }
-  .topbar { align-items: flex-start; }
+  .topbar {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px 12px;
+  }
+  .topbar > div {
+    flex: 1 1 210px;
+    min-width: 0;
+  }
   .topbar strong { max-width: 210px; }
-  .support-link { display: none; }
+  .support-link {
+    display: inline-flex;
+    padding: 8px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
   .hero, .hero-overview { padding: 24px; border-radius: 20px; }
   .hero-logo { width: min(250px, 100%); }
   h1 { font-size: clamp(24px, 9vw, 34px); line-height: .94; }
