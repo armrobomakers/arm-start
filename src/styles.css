@@ -443,12 +443,14 @@ button, input, textarea, select { font: inherit; }
 }
 h1 {
   margin: 0;
-  max-width: 840px;
+  max-width: 100%;
   font-family: var(--font-brand);
   font-weight: 300;
-  font-size: clamp(34px, 4vw, 58px);
-  line-height: .98;
+  font-size: clamp(30px, 5vw, 58px);
+  line-height: .95;
   letter-spacing: -.055em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 .hero p:not(.eyebrow) {
   max-width: 760px;
@@ -769,6 +771,7 @@ h1 {
   .support-link { display: none; }
   .hero, .hero-overview { padding: 24px; border-radius: 20px; }
   .hero-logo { width: min(250px, 100%); }
+  h1 { font-size: clamp(24px, 9vw, 34px); line-height: .94; }
   .hero p:not(.eyebrow) { font-size: 16px; }
   .prep-grid { grid-template-columns: 1fr; }
   .step-card { grid-template-columns: 1fr; }
