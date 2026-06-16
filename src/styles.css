@@ -452,7 +452,7 @@ h1 {
   text-wrap: balance;
   overflow-wrap: normal;
   word-break: normal;
-  hyphens: auto;
+  hyphens: none;
 }
 .hero p:not(.eyebrow) {
   max-width: 760px;
