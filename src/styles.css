@@ -767,10 +767,10 @@ h1 {
     flex-direction: column;
   }
   .docs-main {
-    order: 1;
+    order: 2;
   }
   .sidebar {
-    order: 2;
+    order: 1;
   }
   .sidebar { padding: 14px; }
   .brand { margin-bottom: 12px; }
