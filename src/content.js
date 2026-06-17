@@ -630,6 +630,15 @@ export const guideSections = [
   },
 ];
 
+export const finalChecklist = [
+  "Паспорт или документ для верификации",
+  "Email и телефон",
+  "Латиница для формы Tickmill",
+  "USDT в сети TRC20",
+  "Реферальный код IB80129482",
+  "Логин и пароль торгового счёта",
+];
+
 export const sectionsBySlug = Object.fromEntries(
   guideSections.map((section, index) => [section.slug, { ...section, index }]),
 );
