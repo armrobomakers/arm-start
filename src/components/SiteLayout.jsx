@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { guideMeta, guideSections, navGroups } from "../content";
 import brandMark from "../assets/brand/favicon.svg";
@@ -10,65 +10,97 @@ export function SiteLayout() {
   const currentIndex = guideSections.findIndex((section) => section.slug === pathSlug);
   const progress = Math.round(((currentIndex + 1) / guideSections.length) * 100);
   const [supportOpen, setSupportOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
 
   return (
     <div className="docs-shell">
-      <aside className="sidebar">
-        <Link className="brand" to="/" aria-label="На главную">
-          <img className="brand-icon" src={brandMark} alt="" aria-hidden="true" />
-          <span className="brand-copy">
-            <strong>ARM</strong>
-            <small>AI Robo Makers</small>
-          </span>
-        </Link>
+      <aside className={`sidebar${menuOpen ? " sidebar-open" : ""}`}>
+        <div className="sidebar-inner">
+          <Link className="brand" to="/" aria-label="На главную">
+            <img className="brand-icon" src={brandMark} alt="" aria-hidden="true" />
+            <span className="brand-copy">
+              <strong>ARM</strong>
+              <small>AI Robo Makers</small>
+            </span>
+          </Link>
 
-        <div className="progress-card">
-          <div className="progress-row">
-            <span>Прогресс</span>
-            <strong>{Number.isFinite(progress) ? progress : 0}%</strong>
-          </div>
-          <div className="progress-track">
-            <span style={{ width: `${Number.isFinite(progress) ? progress : 0}%` }} />
-          </div>
-        </div>
-
-        <nav className="side-nav" aria-label="Разделы инструкции">
-          {navGroups.map((group) => (
-            <div className="nav-group" key={group.title}>
-              <p>{group.title}</p>
-              {group.items.map((item) => (
-                <NavLink
-                  key={item.slug}
-                  to={item.slug === "overview" ? "/" : `/${item.slug}`}
-                  end={item.slug === "overview"}
-                  className={({ isActive }) => (isActive ? "side-link active" : "side-link")}
-                >
-                  {item.label}
-                </NavLink>
-              ))}
+          <div className="progress-card">
+            <div className="progress-row">
+              <span>Прогресс</span>
+              <strong>{Number.isFinite(progress) ? progress : 0}%</strong>
             </div>
-          ))}
-        </nav>
+            <div className="progress-track">
+              <span style={{ width: `${Number.isFinite(progress) ? progress : 0}%` }} />
+            </div>
+          </div>
+
+          <nav className="side-nav" aria-label="Разделы инструкции">
+            {navGroups.map((group) => (
+              <div className="nav-group" key={group.title}>
+                <p>{group.title}</p>
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.slug}
+                    to={item.slug === "overview" ? "/" : `/${item.slug}`}
+                    end={item.slug === "overview"}
+                    className={({ isActive }) => (isActive ? "side-link active" : "side-link")}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+            ))}
+          </nav>
+        </div>
       </aside>
 
       <div className="docs-main">
         <header className="topbar">
-          <div>
+          <div className="topbar-title">
             <span className="top-kicker">Публичная инструкция</span>
             <strong>{guideMeta.title}</strong>
           </div>
-          <button
-            className="support-link"
-            type="button"
-            onClick={() => setSupportOpen(true)}
-            aria-haspopup="dialog"
-          >
-            Поддержка
-          </button>
+          <div className="topbar-actions">
+            <button
+              className="menu-button"
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={menuOpen}
+            >
+              Разделы
+            </button>
+            <button
+              className="support-link"
+              type="button"
+              onClick={() => setSupportOpen(true)}
+              aria-haspopup="dialog"
+            >
+              Поддержка
+            </button>
+          </div>
         </header>
 
         <Outlet />
       </div>
+
+      {menuOpen ? <button className="drawer-backdrop" type="button" aria-label="Закрыть меню" onClick={() => setMenuOpen(false)} /> : null}
 
       <SupportModal open={supportOpen} onClose={() => setSupportOpen(false)} />
     </div>

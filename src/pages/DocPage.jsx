@@ -1,5 +1,15 @@
 import { useEffect } from "react";
-import { CardGrid, Callout, CopyBlock, PageNav, Prerequisites, ScreenshotGrid, StepList } from "../components/DocComponents";
+import {
+  CardGrid,
+  Callout,
+  Checklist,
+  CopyBlock,
+  PageNav,
+  Prerequisites,
+  ScreenshotGrid,
+  StageProgress,
+  StepList,
+} from "../components/DocComponents";
 import { guideMeta, sectionsBySlug } from "../content";
 import brandLogo from "../assets/brand/logo.svg";
 
@@ -7,7 +17,7 @@ export function DocPage({ slug }) {
   const section = sectionsBySlug[slug] || sectionsBySlug.overview;
 
   useEffect(() => {
-    document.title = `${section.title} — ARM Guide`;
+    document.title = `${section.title} - ARM Guide`;
   }, [section.title]);
 
   const isOverview = section.slug === "overview";
@@ -31,6 +41,8 @@ export function DocPage({ slug }) {
         </div>
       </section>
 
+      <StageProgress currentSlug={section.slug} />
+
       {isOverview ? <Prerequisites /> : null}
 
       <CardGrid cards={section.cards} />
@@ -41,6 +53,7 @@ export function DocPage({ slug }) {
 
       <StepList steps={section.steps} />
       <CopyBlock block={section.copyBlock} />
+      <Checklist items={section.checklist} />
       <ScreenshotGrid images={section.images} />
       <PageNav current={section} />
     </main>

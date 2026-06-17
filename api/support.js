@@ -18,13 +18,13 @@ export default async function handler(request, response) {
   const telegramChatId = process.env.TELEGRAM_CHAT_ID;
 
   if (!telegramToken || !telegramChatId) {
-    return response.status(500).json({
-      error: "Support channel is not configured. Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.",
+    return response.status(503).json({
+      error: "Канал поддержки не настроен. Добавьте TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID в переменные окружения.",
     });
   }
 
   if (!name || !contact || !message) {
-    return response.status(400).json({ error: "Fill in name, contact, and message." });
+    return response.status(400).json({ error: "Заполните имя, контакт и сообщение." });
   }
 
   const telegramMessage = [

@@ -17,14 +17,35 @@ export const prerequisites = [
   "USDT для перевода в сети TRC-20",
 ];
 
+export const guideStages = [
+  { key: "arm", label: "ARM", slugs: ["overview", "arm-registration", "arm-topup", "arm-subscription"] },
+  {
+    key: "tickmill",
+    label: "Tickmill",
+    slugs: [
+      "tickmill-registration",
+      "tickmill-questionnaire",
+      "tickmill-verification",
+      "tickmill-documents",
+      "tickmill-camera",
+      "tickmill-account",
+      "tickmill-conversion",
+      "tickmill-wallet",
+    ],
+  },
+  { key: "funding", label: "Пополнение", slugs: ["depomost", "bybit-transfer", "trade-transfer"] },
+  { key: "pamm", label: "PAMM", slugs: ["pamm-join", "final-checklist"] },
+  { key: "control", label: "Контроль", slugs: ["errors"] },
+];
+
 export const navGroups = [
   {
     title: "ARM",
     items: [
       { slug: "overview", label: "Обзор" },
       { slug: "arm-registration", label: "Регистрация в ARM" },
-      { slug: "arm-subscription", label: "Подписка ARM" },
       { slug: "arm-topup", label: "Пополнение ARM" },
+      { slug: "arm-subscription", label: "Подписка ARM" },
     ],
   },
   {
@@ -36,6 +57,7 @@ export const navGroups = [
       { slug: "tickmill-documents", label: "Страна проживания" },
       { slug: "tickmill-camera", label: "Фото и камера" },
       { slug: "tickmill-account", label: "Торговый счёт" },
+      { slug: "tickmill-conversion", label: "Конвертация PAMM" },
     ],
   },
   {
@@ -44,7 +66,9 @@ export const navGroups = [
       { slug: "tickmill-wallet", label: "Кошелёк Tickmill" },
       { slug: "depomost", label: "Depomost" },
       { slug: "bybit-transfer", label: "Bybit" },
+      { slug: "trade-transfer", label: "На торговый счёт" },
       { slug: "pamm-join", label: "PAMM ARM" },
+      { slug: "final-checklist", label: "Финальный чек" },
     ],
   },
   {
@@ -112,34 +136,6 @@ export const guideSections = [
     images: [{ src: "reg02", caption: "Форма регистрации инвестора в ARM." }],
   },
   {
-    slug: "arm-subscription",
-    eyebrow: "ARM",
-    title: "Выбор и оплата подписки ARM",
-    lead: "После регистрации инвестор входит в личный кабинет, открывает раздел тарифов и выбирает формат работы.",
-    steps: [
-      {
-        title: "Откройте раздел «Тарифы»",
-        text: "Войдите в кабинет ARM, откройте меню и перейдите к разделу с тарифами.",
-      },
-      {
-        title: "Выберите тариф",
-        text: "Доступны PREMIUM, VIP и TESTDRIVE. Выберите подходящий вариант по сроку и комиссии.",
-      },
-      {
-        title: "Оплатите подписку",
-        text: "Пополните баланс и завершите оплату выбранной подписки.",
-      },
-    ],
-    callouts: [
-      {
-        type: "info",
-        title: "Логика оплаты",
-        text: "Сначала пополнение баланса ARM, затем покупка подписки внутри кабинета.",
-      },
-    ],
-    images: [{ src: "reg03", caption: "Выбор тарифа VIP или PREMIUM в ARM." }],
-  },
-  {
     slug: "arm-topup",
     eyebrow: "ARM",
     title: "Пополнение счёта для покупки подписки ARM",
@@ -170,6 +166,34 @@ export const guideSections = [
       },
     ],
     images: [{ src: "reg04", caption: "Пополнение счёта для покупки подписки ARM." }],
+  },
+  {
+    slug: "arm-subscription",
+    eyebrow: "ARM",
+    title: "Выбор и оплата подписки ARM",
+    lead: "После пополнения инвестор входит в личный кабинет, открывает раздел тарифов и выбирает формат работы.",
+    steps: [
+      {
+        title: "Откройте раздел «Тарифы»",
+        text: "Войдите в кабинет ARM, откройте меню и перейдите к разделу с тарифами.",
+      },
+      {
+        title: "Выберите тариф",
+        text: "Доступны PREMIUM и VIP. Выберите вариант, который соответствует сроку и комиссии.",
+      },
+      {
+        title: "Оплатите подписку",
+        text: "Подтвердите оплату выбранной подписки после пополнения баланса ARM.",
+      },
+    ],
+    callouts: [
+      {
+        type: "info",
+        title: "Логика оплаты",
+        text: "Сначала пополнение баланса ARM, затем покупка подписки внутри кабинета.",
+      },
+    ],
+    images: [{ src: "reg03", caption: "Выбор тарифа VIP или PREMIUM в ARM." }],
   },
   {
     slug: "tickmill-registration",
@@ -371,6 +395,38 @@ export const guideSections = [
     ],
   },
   {
+    slug: "tickmill-conversion",
+    eyebrow: "Tickmill",
+    title: "Конвертация счёта в PAMM Investor",
+    lead: "После открытия счёта нужно попросить поддержку Tickmill перевести его в режим PAMM Investor и привязать к нужному фонду.",
+    steps: [
+      {
+        title: "Напишите в поддержку",
+        text: "Отправьте письмо на support@tickmill.com с просьбой конвертировать счёт в PAMM Investor.",
+      },
+      {
+        title: "Укажите номер счёта и фонд",
+        text: "В письме добавьте номер торгового счёта и запрос на подключение к PAMM MASTER 55770045.",
+      },
+      {
+        title: "Проверьте ответ",
+        text: "После подтверждения со стороны Tickmill дождитесь обновления статуса счёта в кабинете.",
+      },
+    ],
+    callouts: [
+      {
+        type: "info",
+        title: "Эта операция нужна отдельно",
+        text: "Без конвертации счёт не сможет подключиться к PAMM ARM по основной ссылке тарифа.",
+      },
+    ],
+    copyBlock: {
+      label: "Письмо для конвертации счёта",
+      text:
+        "support@tickmill.com\n\nПожалуйста, конвертируйте мой счёт (вставьте свой номер счёта) в счёт инвестора PAMM.\nЯ хочу присоединиться к PAMM MASTER 55770045.",
+    },
+  },
+  {
     slug: "tickmill-wallet",
     eyebrow: "Tickmill",
     title: "Пополнение кошелька Tickmill",
@@ -466,6 +522,33 @@ export const guideSections = [
     ],
   },
   {
+    slug: "trade-transfer",
+    eyebrow: "Tickmill",
+    title: "Перевод средств на торговый счёт",
+    lead: "После пополнения кошелька нужно перевести средства на сам торговый счёт Tickmill, чтобы они стали доступны для подключения к PAMM.",
+    steps: [
+      {
+        title: "Откройте внутренний перевод",
+        text: "В кабинете Tickmill выберите перевод между собственными счетами или кошельком и торговым счётом.",
+      },
+      {
+        title: "Укажите источник и получателя",
+        text: "В качестве источника используйте пополненный кошелёк Tickmill, а получателем укажите торговый счёт MT5.",
+      },
+      {
+        title: "Подтвердите перевод",
+        text: "Проверьте сумму и завершите операцию, чтобы баланс оказался на торговом счёте.",
+      },
+    ],
+    callouts: [
+      {
+        type: "warning",
+        title: "Проверьте, что перевод дошёл",
+        text: "Пока средства не отображаются на торговом счёте, подключение к PAMM лучше не начинать.",
+      },
+    ],
+  },
+  {
     slug: "pamm-join",
     eyebrow: "Финальный этап",
     title: "Подключение к PAMM фонду ARM",
@@ -478,7 +561,7 @@ export const guideSections = [
       },
       {
         title: "Откройте нужную ссылку подключения",
-        text: "Используйте ссылку, соответствующую вашему тарифу: TESTDRIVE, VIP или PREMIUM.",
+        text: "Используйте ссылку, соответствующую вашему тарифу: VIP или PREMIUM.",
       },
       {
         title: "Введите данные счёта",
@@ -488,13 +571,27 @@ export const guideSections = [
     copyBlock: {
       label: "Письмо в поддержку и ссылки",
       text:
-        "support@tickmill.com\n\nПожалуйста, конвертируйте мой счёт (вставьте свой номер счёта) в счёт инвестора PAMM.\nЯ хочу присоединиться к PAMM MASTER 55770045.\n\nTESTDRIVE: https://pamm.tickmill.com/app/join/20/arm_free\nVIP: https://pamm.tickmill.com/app/join/20/armvip25\nPREMIUM: https://pamm.tickmill.com/app/join/20/opkguwrb",
+        "support@tickmill.com\n\nПожалуйста, конвертируйте мой счёт (вставьте свой номер счёта) в счёт инвестора PAMM.\nЯ хочу присоединиться к PAMM MASTER 55770045.\n\nVIP: https://pamm.tickmill.com/app/join/20/armvip25\nPREMIUM: https://pamm.tickmill.com/app/join/20/opkguwrb",
     },
     callouts: [
       {
         type: "success",
         title: "После подключения",
         text: "Счёт будет привязан к PAMM ARM, и дальнейшее управление пойдёт по алгоритмической стратегии фонда.",
+      },
+    ],
+  },
+  {
+    slug: "final-checklist",
+    eyebrow: "Контроль",
+    title: "Финальный чек перед запуском",
+    lead: "Перед отправкой пользователю полезно сверить все критические точки: данные, документы, сеть и подключение к PAMM.",
+    checklist: finalChecklist,
+    callouts: [
+      {
+        type: "info",
+        title: "Лучше пройти список до старта",
+        text: "Если хотя бы один пункт не готов, пользователя лучше вернуть на нужный этап, чем ловить ошибку позже.",
       },
     ],
   },

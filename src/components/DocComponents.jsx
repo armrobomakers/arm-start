@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { guideSections, prerequisites } from "../content";
+import { guideSections, guideStages, prerequisites } from "../content";
 import { imageMap } from "../imageMap";
 
 function renderRichText(text) {
@@ -56,6 +57,7 @@ export function Callout({ callout }) {
 
 export function CardGrid({ cards = [] }) {
   if (!cards.length) return null;
+
   return (
     <div className="feature-grid">
       {cards.map((card) => (
@@ -75,7 +77,7 @@ export function ScreenshotGrid({ images = [] }) {
     <div className="screenshot-grid">
       {images.map((image) => (
         <figure className="screenshot-card" key={image.src}>
-          <img src={imageMap[image.src]} alt={image.caption} />
+          <img src={imageMap[image.src]} alt={image.caption} loading="lazy" decoding="async" />
           <figcaption>{image.caption}</figcaption>
         </figure>
       ))}
@@ -83,16 +85,92 @@ export function ScreenshotGrid({ images = [] }) {
   );
 }
 
+export function StageProgress({ currentSlug }) {
+  const currentIndex = guideStages.findIndex((stage) => stage.slugs.includes(currentSlug));
+
+  if (currentIndex === -1) return null;
+
+  return (
+    <section className="stage-progress card">
+      <div className="stage-progress-head">
+        <div>
+          <p className="eyebrow">Путь</p>
+          <h2>Прогресс по стадиям</h2>
+        </div>
+        <span className="stage-progress-count">
+          {currentIndex + 1}/{guideStages.length}
+        </span>
+      </div>
+
+      <div className="stage-progress-track" aria-hidden="true">
+        <span style={{ width: `${((currentIndex + 1) / guideStages.length) * 100}%` }} />
+      </div>
+
+      <div className="stage-progress-list">
+        {guideStages.map((stage, index) => {
+          const active = index === currentIndex;
+          const complete = index < currentIndex;
+
+          return (
+            <div key={stage.key} className={`stage-pill${active ? " active" : ""}${complete ? " complete" : ""}`}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{stage.label}</strong>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+export function Checklist({ items = [] }) {
+  if (!items.length) return null;
+
+  return (
+    <section className="checklist card">
+      <div className="section-title">
+        <p className="eyebrow">Чек-лист</p>
+        <h2>Что должно быть готово</h2>
+      </div>
+      <div className="checklist-grid">
+        {items.map((item) => (
+          <label key={item} className="checklist-item">
+            <input type="checkbox" readOnly />
+            <span>{item}</span>
+          </label>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function CopyBlock({ block }) {
+  const [copied, setCopied] = useState(false);
+
   if (!block) return null;
 
   const lines = String(block.text || "").split("\n");
 
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(block.text || "");
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
+  }
+
   return (
     <div className="copy-block">
       <div className="copy-head">
-        <span>{block.label}</span>
-        <small>скопируйте и замените данные в скобках</small>
+        <div>
+          <span>{block.label}</span>
+          <small>Скопируйте и замените данные в скобках</small>
+        </div>
+        <button className="copy-button" type="button" onClick={handleCopy}>
+          {copied ? "Скопировано" : "Копировать"}
+        </button>
       </div>
       <div className="copy-body" aria-label={block.label}>
         {lines.map((line, index) => {
