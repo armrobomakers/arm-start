@@ -222,7 +222,7 @@ button, input, textarea, select { font: inherit; }
 
 .topbar-logo {
   display: block;
-  width: min(212px, 100%);
+  width: min(172px, 100%);
   height: auto;
 }
 .support-link,
@@ -1055,7 +1055,7 @@ h1 {
   }
 
   .topbar-logo {
-    width: min(160px, 42vw);
+    width: min(132px, 36vw);
   }
 
   .topbar-actions {
