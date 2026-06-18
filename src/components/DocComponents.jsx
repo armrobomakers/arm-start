@@ -146,6 +146,7 @@ export function Checklist({ items = [] }) {
 
 export function CopyBlock({ block }) {
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState("");
 
   if (!block) return null;
 
@@ -153,11 +154,16 @@ export function CopyBlock({ block }) {
 
   async function handleCopy() {
     try {
+      setCopyError("");
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard API недоступен");
+      }
       await navigator.clipboard.writeText(block.text || "");
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
       setCopied(false);
+      setCopyError("Копирование недоступно в этом браузере. Скопируйте текст вручную.");
     }
   }
 
@@ -172,6 +178,7 @@ export function CopyBlock({ block }) {
           {copied ? "Скопировано" : "Копировать"}
         </button>
       </div>
+      {copyError ? <div className="copy-error" role="alert">{copyError}</div> : null}
       <div className="copy-body" aria-label={block.label}>
         {lines.map((line, index) => {
           const trimmed = line.trim();
