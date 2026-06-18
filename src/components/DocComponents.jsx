@@ -180,7 +180,6 @@ export function CopyBlock({ block }) {
       <div className="copy-head">
         <div>
           <span>{block.label}</span>
-          <small>Скопируйте и замените данные в скобках</small>
         </div>
         <button className="copy-button" type="button" onClick={handleCopy}>
           {copied ? "Скопировано" : "Копировать"}
