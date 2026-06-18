@@ -150,7 +150,8 @@ export function CopyBlock({ block }) {
 
   if (!block) return null;
 
-  const lines = String(block.text || "").split("\n");
+  const normalizedText = String(block.text || "").replace(/\\n/g, "\n");
+  const lines = normalizedText.split("\n");
 
   async function handleCopy() {
     try {
@@ -158,7 +159,7 @@ export function CopyBlock({ block }) {
       if (!navigator.clipboard?.writeText) {
         throw new Error("Clipboard API недоступен");
       }
-      await navigator.clipboard.writeText(block.text || "");
+      await navigator.clipboard.writeText(normalizedText);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {

@@ -601,10 +601,16 @@ h1 {
   color: #fff;
 }
 .copy-head span {
+  display: block;
   font-family: var(--font-brand);
   font-weight: 300;
 }
-.copy-head small { color: #cbd5e1; }
+.copy-head small {
+  display: block;
+  margin-top: 6px;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
 .copy-body {
   display: grid;
   gap: 12px;
