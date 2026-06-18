@@ -38,6 +38,15 @@ export const guideStages = [
   { key: "control", label: "Контроль", slugs: ["errors"] },
 ];
 
+export const finalChecklist = [
+  "Паспорт или документ для верификации",
+  "Email и телефон",
+  "Латиница для формы Tickmill",
+  "USDT в сети TRC20",
+  "Реферальный код IB80129482",
+  "Логин и пароль торгового счёта",
+];
+
 export const navGroups = [
   {
     title: "ARM",
@@ -630,7 +639,7 @@ export const guideSections = [
   },
 ];
 
-export const finalChecklist = [
+const finalChecklistLegacy = [
   "Паспорт или документ для верификации",
   "Email и телефон",
   "Латиница для формы Tickmill",
