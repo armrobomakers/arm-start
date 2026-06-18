@@ -889,6 +889,21 @@ h1 {
   color: var(--muted);
 }
 
+.stage-pill-link {
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.stage-pill-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(59, 75, 107, 0.08);
+}
+
+.stage-pill-link:focus-visible {
+  outline: 3px solid rgba(68, 111, 176, 0.28);
+  outline-offset: 2px;
+}
+
 .stage-pill span {
   color: var(--steel-blue);
   font-size: 12px;

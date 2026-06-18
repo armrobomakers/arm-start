@@ -110,12 +110,19 @@ export function StageProgress({ currentSlug }) {
         {guideStages.map((stage, index) => {
           const active = index === currentIndex;
           const complete = index < currentIndex;
+          const stageHref = stage.slugs[0] === "overview" ? "/" : `/${stage.slugs[0]}`;
 
           return (
-            <div key={stage.key} className={`stage-pill${active ? " active" : ""}${complete ? " complete" : ""}`}>
+            <Link
+              key={stage.key}
+              to={stageHref}
+              className={`stage-pill stage-pill-link${active ? " active" : ""}${complete ? " complete" : ""}`}
+              aria-current={active ? "step" : undefined}
+              aria-label={`Перейти к стадии ${stage.label}`}
+            >
               <span>{String(index + 1).padStart(2, "0")}</span>
               <strong>{stage.label}</strong>
-            </div>
+            </Link>
           );
         })}
       </div>
