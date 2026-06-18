@@ -1,5 +1,5 @@
 export const guideMeta = {
-  title: "ARM + Tickmill",
+  title: "ARM",
   subtitle:
     "Пошаговая инструкция: регистрация в ARM, подписка, регистрация и верификация Tickmill, пополнение и подключение к PAMM ARM.",
   version: "ARM x Tickmill",

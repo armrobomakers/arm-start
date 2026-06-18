@@ -49,7 +49,7 @@ export function SiteLayout() {
             </div>
           </div>
 
-          <nav className="side-nav" aria-label="Разделы инструкции">
+          <nav className="side-nav" aria-label="Меню инструкции">
             {navGroups.map((group) => (
               <div className="nav-group" key={group.title}>
                 <p>{group.title}</p>
@@ -84,7 +84,7 @@ export function SiteLayout() {
               aria-haspopup="dialog"
               aria-expanded={menuOpen}
             >
-              Разделы
+              Меню
             </button>
             <button
               className="support-link"
