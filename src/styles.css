@@ -213,22 +213,17 @@ button, input, textarea, select { font: inherit; }
   background: rgba(249, 251, 255, 0.82);
   backdrop-filter: blur(18px);
 }
-.topbar strong {
-  display: block;
-  color: var(--blue-dark);
-  font-family: var(--font-brand);
-  font-size: 18px;
-  font-weight: 300;
-  letter-spacing: 0.01em;
+.topbar-brand {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 0;
 }
-.top-kicker {
+
+.topbar-logo {
   display: block;
-  margin-bottom: 3px;
-  color: var(--steel-blue);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  width: min(212px, 100%);
+  height: auto;
 }
 .support-link,
 .primary-action {
@@ -754,10 +749,6 @@ h1 {
   .feature-grid { grid-template-columns: 1fr; }
 }
 
-.topbar-title {
-  min-width: 0;
-}
-
 .topbar-actions {
   display: flex;
   align-items: center;
@@ -1063,14 +1054,8 @@ h1 {
     gap: 10px 12px;
   }
 
-  .topbar-title {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  .topbar strong {
-    max-width: 140px;
-    line-height: 1;
+  .topbar-logo {
+    width: min(160px, 42vw);
   }
 
   .topbar-actions {

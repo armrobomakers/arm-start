@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { guideMeta, guideSections, navGroups } from "../content";
+import { guideSections, navGroups } from "../content";
 import brandMark from "../assets/brand/favicon.svg";
+import brandLogo from "../assets/brand/logo.svg";
 import { SupportModal } from "./SupportModal";
 
 export function SiteLayout() {
@@ -77,10 +78,9 @@ export function SiteLayout() {
 
       <div className="docs-main">
         <header className="topbar">
-          <div className="topbar-title">
-            <span className="top-kicker">Публичная инструкция</span>
-            <strong>{guideMeta.title}</strong>
-          </div>
+          <Link className="topbar-brand" to="/" aria-label="На главную">
+            <img className="topbar-logo" src={brandLogo} alt="" aria-hidden="true" />
+          </Link>
           <div className="topbar-actions">
             <button
               className="menu-button"
