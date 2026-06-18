@@ -772,12 +772,20 @@ h1 {
   justify-content: center;
   min-height: 42px;
   padding: 0 14px;
-  border: 1px solid var(--line);
+  border: 0;
   border-radius: 12px;
-  background: #fff;
-  color: var(--text);
+  background: linear-gradient(135deg, var(--green-dark), var(--green));
+  color: #fff;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 12px 24px rgba(45, 106, 49, 0.22);
+  font-family: var(--font-brand);
+  letter-spacing: 0.02em;
+}
+
+.menu-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(45, 106, 49, 0.28);
 }
 
 .sidebar-inner {
