@@ -1003,19 +1003,31 @@ h1 {
   }
 
   .topbar {
-    align-items: flex-start;
+    align-items: center;
     gap: 10px 12px;
   }
 
+  .topbar-title {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
   .topbar strong {
-    max-width: 210px;
+    max-width: 140px;
+    line-height: 1;
+  }
+
+  .topbar-actions {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    margin-left: auto;
   }
 
   .support-link,
   .menu-button {
-    min-height: 38px;
-    padding: 0 12px;
-    font-size: 12px;
+    min-height: 36px;
+    padding: 0 11px;
+    font-size: 11px;
     white-space: nowrap;
   }
 
