@@ -787,6 +787,35 @@ h1 {
   min-height: 100%;
 }
 
+.sidebar-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.sidebar-head .brand {
+  flex: 1 1 auto;
+  margin-bottom: 0;
+}
+
+.drawer-close {
+  display: none;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--blue-dark);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(59, 75, 107, 0.08);
+}
+
 .drawer-backdrop {
   position: fixed;
   inset: 0;
@@ -845,7 +874,7 @@ h1 {
 
 .stage-progress-list {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
   margin-top: 14px;
 }
@@ -961,6 +990,10 @@ h1 {
 
   .sidebar.sidebar-open {
     transform: translateX(0);
+  }
+
+  .drawer-close {
+    display: inline-flex;
   }
 
   .menu-button {

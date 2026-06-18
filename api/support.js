@@ -19,7 +19,7 @@ export default async function handler(request, response) {
 
   if (!telegramToken || !telegramChatId) {
     return response.status(503).json({
-      error: "Канал поддержки не настроен. Добавьте TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID в переменные окружения.",
+      error: "Канал поддержки временно недоступен. Напишите на armrobomakers@gmail.com.",
     });
   }
 
@@ -52,10 +52,8 @@ export default async function handler(request, response) {
   });
 
   if (!telegramResponse.ok) {
-    const errorBody = await telegramResponse.text();
     return response.status(502).json({
-      error: "Telegram delivery failed",
-      details: errorBody,
+      error: "Канал поддержки временно недоступен. Напишите на armrobomakers@gmail.com.",
     });
   }
 

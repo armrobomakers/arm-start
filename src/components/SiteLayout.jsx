@@ -31,13 +31,18 @@ export function SiteLayout() {
     <div className="docs-shell">
       <aside className={`sidebar${menuOpen ? " sidebar-open" : ""}`}>
         <div className="sidebar-inner">
-          <Link className="brand" to="/" aria-label="На главную">
-            <img className="brand-icon" src={brandMark} alt="" aria-hidden="true" />
-            <span className="brand-copy">
-              <strong>ARM</strong>
-              <small>AI Robo Makers</small>
-            </span>
-          </Link>
+          <div className="sidebar-head">
+            <Link className="brand" to="/" aria-label="На главную">
+              <img className="brand-icon" src={brandMark} alt="" aria-hidden="true" />
+              <span className="brand-copy">
+                <strong>ARM</strong>
+                <small>AI Robo Makers</small>
+              </span>
+            </Link>
+            <button className="drawer-close" type="button" onClick={() => setMenuOpen(false)} aria-label="Закрыть меню">
+              ×
+            </button>
+          </div>
 
           <div className="progress-card">
             <div className="progress-row">

@@ -69,13 +69,19 @@ export function SupportModal({ open, onClose }) {
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(payload?.error || "Не удалось отправить заявку");
+        const fallbackMessage = "Канал поддержки временно недоступен. Напишите на armrobomakers@gmail.com.";
+        if (response.status === 503) {
+          throw new Error(fallbackMessage);
+        }
+        throw new Error(payload?.error || fallbackMessage);
       }
 
       setStatus("success");
     } catch (submitError) {
       setStatus("idle");
-      setError(submitError instanceof Error ? submitError.message : "Не удалось отправить заявку");
+      const fallbackMessage = "Канал поддержки временно недоступен. Напишите на armrobomakers@gmail.com.";
+      const message = submitError instanceof Error ? submitError.message : fallbackMessage;
+      setError(message || fallbackMessage);
     }
   }
 

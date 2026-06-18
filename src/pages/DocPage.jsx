@@ -17,7 +17,7 @@ export function DocPage({ slug }) {
   const section = sectionsBySlug[slug] || sectionsBySlug.overview;
 
   useEffect(() => {
-    document.title = `${section.title} - ARM Guide`;
+    document.title = `${section.title} — ARM Start`;
   }, [section.title]);
 
   const isOverview = section.slug === "overview";
