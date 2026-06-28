@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { guideSections, guideStages, prerequisites } from "../content";
 import { imageMap } from "../imageMap";
@@ -152,28 +151,10 @@ export function Checklist({ items = [] }) {
 }
 
 export function CopyBlock({ block }) {
-  const [copied, setCopied] = useState(false);
-  const [copyError, setCopyError] = useState("");
-
   if (!block) return null;
 
   const normalizedText = String(block.text || "").replace(/\\n/g, "\n");
   const lines = normalizedText.split("\n");
-
-  async function handleCopy() {
-    try {
-      setCopyError("");
-      if (!navigator.clipboard?.writeText) {
-        throw new Error("Clipboard API недоступен");
-      }
-      await navigator.clipboard.writeText(normalizedText);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
-    } catch {
-      setCopied(false);
-      setCopyError("Копирование недоступно в этом браузере. Скопируйте текст вручную.");
-    }
-  }
 
   return (
     <div className="copy-block">
@@ -181,11 +162,8 @@ export function CopyBlock({ block }) {
         <div>
           <span>{block.label}</span>
         </div>
-        <button className="copy-button" type="button" onClick={handleCopy}>
-          {copied ? "Скопировано" : "Копировать"}
-        </button>
       </div>
-      {copyError ? <div className="copy-error" role="alert">{copyError}</div> : null}
+
       <div className="copy-body" aria-label={block.label}>
         {lines.map((line, index) => {
           const trimmed = line.trim();
@@ -233,7 +211,6 @@ export function CopyBlock({ block }) {
     </div>
   );
 }
-
 export function Prerequisites() {
   return (
     <div className="prep-box">
@@ -270,3 +247,4 @@ export function PageNav({ current }) {
     </div>
   );
 }
+
