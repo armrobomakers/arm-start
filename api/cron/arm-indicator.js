@@ -33,9 +33,13 @@ export default async function handler(request, response) {
       diagnostics: result.diagnostics,
     });
   } catch (error) {
+    const cause = error?.cause || error;
     return sendJson(response, 503, {
       ok: false,
-      error: error instanceof Error ? error.message : "Indicator sync failed",
+      error: "Indicator sync failed",
+      errorType: cause?.name || "UnknownError",
+      errorStage: cause?.syncStage || null,
+      myfxbook: cause?.myfxbookDiagnostics || null,
     });
   }
 }
