@@ -1,6 +1,7 @@
 import {
   calculateMetricsFromDailyGain,
   formatYmdInTimeZone,
+  normalizeDataDailyPayload,
   normalizeDailyGainPayload,
   parseMyfxbookDate,
   trimDailyGainToLastCompletedDay,
@@ -204,7 +205,7 @@ export async function getMyfxbookDataDaily({
     { timeoutMs },
   );
 
-  const normalized = normalizeDailyGainPayload(payload);
+  const normalized = normalizeDataDailyPayload(payload);
   if (!normalized.length) {
     throw new MyfxbookInvalidPayloadError("Myfxbook get-data-daily payload does not contain valid data points", {
       endpoint: "get-data-daily",
@@ -235,11 +236,23 @@ export async function syncIndicatorFromMyfxbook({
   retryInvalidSession = true,
 }) {
   async function runSingleSyncAttempt() {
-    const session = await loginMyfxbook({ email, password, timeoutMs });
-    let account = null;
+    const diagnostics = {
+      loginOk: false,
+      accountsOk: false,
+      dailyGainOk: false,
+      dataDailyOk: false,
+      logoutOk: false,
+    };
+    let stage = "login";
+    let session = "";
 
     try {
+      session = await loginMyfxbook({ email, password, timeoutMs });
+      diagnostics.loginOk = true;
+      stage = "get-my-accounts";
       const accounts = await getMyfxbookAccounts({ session, timeoutMs });
+      diagnostics.accountsOk = true;
+    let account = null;
       account = resolveAccountId(accounts, systemId);
 
       if (!account) {
@@ -257,6 +270,7 @@ export async function syncIndicatorFromMyfxbook({
       }
 
       const latestDate = formatYmdInTimeZone(new Date(), timezone) ?? new Date().toISOString().slice(0, 10);
+      stage = "get-daily-gain";
       const dailyGain = await getMyfxbookDailyGain({
         session,
         accountId: account.id,
@@ -264,6 +278,7 @@ export async function syncIndicatorFromMyfxbook({
         endDate: latestDate,
         timeoutMs,
       });
+      diagnostics.dailyGainOk = true;
 
       const trimmedSeries = trimDailyGainToLastCompletedDay(dailyGain, {
         timeZone: timezone,
@@ -271,16 +286,6 @@ export async function syncIndicatorFromMyfxbook({
       });
 
       let series = trimmedSeries;
-
-      if (!series.length) {
-        series = await getMyfxbookDataDaily({
-          session,
-          accountId: account.id,
-          startDate: historyStart,
-          endDate: latestDate,
-          timeoutMs,
-        });
-      }
 
       if (!series.length) {
         throw new MyfxbookInvalidPayloadError("Myfxbook returned no daily data", {
@@ -291,6 +296,7 @@ export async function syncIndicatorFromMyfxbook({
 
       const asOfPoint = series.at(-1)?.date ?? latestDate;
       const { dataAsOf, metrics } = calculateMetricsFromDailyGain(series, { asOfDate: asOfPoint });
+      stage = "get-data-daily";
       const dataDaily = await getMyfxbookDataDaily({
         session,
         accountId: account.id,
@@ -301,6 +307,7 @@ export async function syncIndicatorFromMyfxbook({
         warnings.push(`get-data-daily cross-check unavailable: ${error.message}`);
         return [];
       });
+      diagnostics.dataDailyOk = dataDaily.length > 0;
       const dataDailyLastPoint = dataDaily.at(-1) ?? null;
 
       if (dataDailyLastPoint?.date && dataDailyLastPoint.date !== dataAsOf) {
@@ -335,9 +342,21 @@ export async function syncIndicatorFromMyfxbook({
           dataDailyLastDate: dataDailyLastPoint?.date ?? null,
           dataDailyLength: dataDaily.length,
         },
+        diagnostics,
       };
+    } catch (error) {
+      error.syncStage = stage;
+      error.myfxbookDiagnostics = diagnostics;
+      throw error;
     } finally {
-      await logoutMyfxbook({ session, timeoutMs });
+      if (session) {
+        try {
+          await logoutMyfxbook({ session, timeoutMs });
+          diagnostics.logoutOk = true;
+        } catch {
+          diagnostics.logoutOk = false;
+        }
+      }
     }
   }
 

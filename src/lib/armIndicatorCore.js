@@ -5,28 +5,28 @@ export const ARM_INDICATOR_TICKS = [-100, -60, -20, 0, 20, 60, 100];
 
 export const ARM_INDICATOR_ZONE_META = {
   strong_buy: {
-    label: "Сильная зона пополнения",
-    recommendation: "Хорошая точка для увеличения капитала.",
+    label: "СИЛЬНАЯ ЗОНА ПОПОЛНЕНИЯ",
+    recommendation: "Хорошая точка для увеличения капитала",
     tone: "buy",
   },
   buy: {
-    label: "Зона пополнения",
-    recommendation: "Можно рассмотреть увеличение капитала.",
+    label: "ЗОНА ПОПОЛНЕНИЯ",
+    recommendation: "Можно рассмотреть увеличение капитала",
     tone: "buy",
   },
   neutral: {
-    label: "Нейтральная зона",
-    recommendation: "Лучше подождать и не принимать поспешных решений.",
+    label: "НЕЙТРАЛЬНАЯ ЗОНА",
+    recommendation: "Ждать / ничего не делать",
     tone: "neutral",
   },
   profit: {
-    label: "Зона фиксации прибыли",
-    recommendation: "Можно фиксировать часть прибыли.",
+    label: "ЗОНА ФИКСАЦИИ ПРИБЫЛИ",
+    recommendation: "Можно зафиксировать часть прибыли",
     tone: "profit",
   },
   strong_profit: {
-    label: "Сильная зона фиксации прибыли",
-    recommendation: "Хорошая точка для фиксации прибыли.",
+    label: "СИЛЬНАЯ ЗОНА ФИКСАЦИИ ПРИБЫЛИ",
+    recommendation: "Хорошая точка для фиксации прибыли",
     tone: "profit",
   },
 };
@@ -216,7 +216,7 @@ export function normalizeDailyGainEntry(entry) {
 
   const rawDate = entry.date ?? entry.Date ?? entry.day ?? entry.time ?? entry.timestamp;
   const date = toYmd(rawDate);
-  const value = parseIndicatorNumber(entry.value ?? entry.gain ?? entry.dailyGain ?? entry.growthEquity);
+  const value = parseIndicatorNumber(entry.value ?? entry.gain ?? entry.dailyGain);
   const profit = parseIndicatorNumber(entry.profit ?? entry.balance ?? entry.equity);
 
   if (!date || !Number.isFinite(value)) {
@@ -231,7 +231,7 @@ export function normalizeDailyGainEntry(entry) {
 }
 
 export function normalizeDailyGainPayload(payload) {
-  const rawSeries = payload?.dailyGain ?? payload?.dataDaily ?? payload?.data ?? payload?.series ?? [];
+  const rawSeries = payload?.dailyGain ?? payload?.data ?? payload?.series ?? [];
   const flattened = Array.isArray(rawSeries) ? rawSeries.flat(2) : [];
   const deduped = new Map();
 
@@ -242,6 +242,48 @@ export function normalizeDailyGainPayload(payload) {
     }
 
     deduped.set(normalized.date, normalized);
+  }
+
+  return [...deduped.values()].sort((left, right) => left.date.localeCompare(right.date));
+}
+
+export function normalizeDataDailyEntry(entry) {
+  if (!entry || typeof entry !== "object") {
+    return null;
+  }
+
+  const date = toYmd(entry.date ?? entry.Date ?? entry.day ?? entry.time ?? entry.timestamp);
+  if (!date) {
+    return null;
+  }
+
+  const read = (...keys) => {
+    const value = keys.map((key) => entry[key]).find((candidate) => candidate !== undefined && candidate !== null && candidate !== "");
+    const parsed = parseIndicatorNumber(value);
+    return Number.isFinite(parsed) ? roundTo(parsed, 4) : null;
+  };
+
+  return {
+    date,
+    balance: read("balance", "Balance"),
+    floatingPL: read("floatingPL", "floatingProfit", "floating_profit", "FloatingPL"),
+    profit: read("profit", "Profit"),
+    growthEquity: read("growthEquity", "equity", "Equity"),
+    pips: read("pips", "Pips"),
+    lots: read("lots", "Lots"),
+  };
+}
+
+export function normalizeDataDailyPayload(payload) {
+  const rawSeries = payload?.dataDaily ?? payload?.data ?? payload?.series ?? [];
+  const flattened = Array.isArray(rawSeries) ? rawSeries.flat(2) : [];
+  const deduped = new Map();
+
+  for (const entry of flattened) {
+    const normalized = normalizeDataDailyEntry(entry);
+    if (normalized) {
+      deduped.set(normalized.date, normalized);
+    }
   }
 
   return [...deduped.values()].sort((left, right) => left.date.localeCompare(right.date));
@@ -344,24 +386,26 @@ export function calculateIndicatorScore(metrics) {
     ? roundTo(metrics.momentumPct, 1)
     : calculateMomentumPct({ return30dPct, return60dPct, return90dPct });
 
-  const positiveMomentum = clamp(momentumPct, 0, 30) / 30 * 60;
-  const recentHighBonus = clamp(25 - daysSinceHigh, 0, 25) / 25 * 15;
-  const lowDrawdownBonus = momentumPct > 0 ? clamp(5 - drawdown, 0, 5) / 5 * 12 : 0;
-  const positiveSynergy = clamp(momentumPct, 0, 30) / 30 * clamp(5 - drawdown, 0, 5) / 5 * 12;
+  const ddNormalized = clamp((drawdown - 10) / 30, 0, 1);
+  const negativeMomentumNormalized = clamp(-momentumPct / 30, 0, 1);
+  const stagnationNormalized = clamp((daysSinceHigh - 30) / 210, 0, 1);
+  const buyIntensity = ddNormalized * 0.6 + negativeMomentumNormalized * 0.25 + stagnationNormalized * 0.15;
 
-  const drawdownRisk = clamp(drawdown - 5, 0, 35) / 35 * 40;
-  const momentumRisk = clamp(-momentumPct, 0, 30) / 30 * 18;
-  const stagnationRisk = clamp(daysSinceHigh - 14, 0, 180) / 180 * 15;
-  const returnRisk = clamp(-(((return30dPct + return60dPct + return90dPct) / 3) - 1), 0, 25) / 25 * 12;
-  const stressPenalty = clamp(drawdown - 20, 0, 20) / 20 * clamp(-momentumPct, 0, 20) / 20 * 10;
+  const positiveMomentumNormalized = clamp(momentumPct / 30, 0, 1);
+  const nearHighNormalized = clamp(1 - drawdown / 10, 0, 1);
+  const recentHighNormalized = clamp((30 - daysSinceHigh) / 20, 0, 1);
+  const profitIntensity = positiveMomentumNormalized * (0.7 + nearHighNormalized * 0.2 + recentHighNormalized * 0.1);
 
-  const score = clamp(
-    Math.round(
-      positiveMomentum + recentHighBonus + lowDrawdownBonus + positiveSynergy - drawdownRisk - momentumRisk - stagnationRisk - returnRisk - stressPenalty,
-    ),
-    -100,
-    100,
-  );
+  let score;
+  if (drawdown < 10 && Math.abs(momentumPct) < 3) {
+    score = Math.round(clamp((momentumPct / 3) * 20, -20, 20));
+  } else if (drawdown >= 10 || momentumPct <= -3) {
+    score = -Math.round(buyIntensity * 100);
+  } else {
+    score = Math.round(profitIntensity * 100);
+  }
+
+  score = clamp(score, -100, 100);
 
   const zone = getZoneForScore(score);
   const zoneMeta = ARM_INDICATOR_ZONE_META[zone];

@@ -36,9 +36,6 @@ export function DocPage({ slug }) {
               <a className="primary-action" href={guideMeta.tickmillLink} target="_blank" rel="noreferrer">
                 Ссылка Tickmill
               </a>
-              <a className="button button-secondary" href="/#arm-investor-indicator">
-                ARM Indicator
-              </a>
               <span className="soft-pill">IB: {guideMeta.ibCode}</span>
             </div>
           ) : null}

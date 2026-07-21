@@ -2,7 +2,6 @@ import { createFixtureHistory, createFixtureSnapshot } from "../../src/lib/armIn
 import {
   buildIndicatorSnapshot,
   normalizeSnapshotForTransport,
-  roundTo,
 } from "../../src/lib/armIndicatorCore.js";
 import { readIndicatorState, writeIndicatorState } from "./armIndicatorStorage.js";
 import {
@@ -204,6 +203,7 @@ export async function syncIndicatorState({ referenceDate = new Date(), days = 36
           dailyPointsCount: liveResult.rawSeriesLength,
           warnings: liveResult.warnings,
           crossCheck: liveResult.crossCheck,
+          myfxbook: liveResult.diagnostics,
         },
       };
 
@@ -250,6 +250,8 @@ export async function syncIndicatorState({ referenceDate = new Date(), days = 36
         stale: true,
         errorType: lastError?.name || "UnknownError",
         errorMessage: sanitizeErrorMessage(lastError),
+        errorStage: lastError?.syncStage || null,
+        myfxbook: lastError?.myfxbookDiagnostics || null,
         recovered: true,
       },
     };
@@ -287,15 +289,6 @@ export function toPublicCurrentResponse(snapshot) {
     dataAsOf: snapshot.dataAsOf,
     updatedAt: snapshot.updatedAt,
     stale: Boolean(snapshot.stale),
-    metrics: {
-      currentDrawdownPct: roundTo(snapshot.metrics.currentDrawdownPct, 1),
-      return30dPct: roundTo(snapshot.metrics.return30dPct, 1),
-      return60dPct: roundTo(snapshot.metrics.return60dPct, 1),
-      return90dPct: roundTo(snapshot.metrics.return90dPct, 1),
-      momentumPct: roundTo(snapshot.metrics.momentumPct, 1),
-      daysSinceHigh: Math.max(0, Math.round(snapshot.metrics.daysSinceHigh)),
-    },
-    source: snapshot.source,
   };
 }
 

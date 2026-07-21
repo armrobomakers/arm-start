@@ -1,4 +1,4 @@
-import { loadPublicCurrentSnapshot } from "../_lib/armIndicatorService.js";
+import { loadPublicCurrentSnapshot, toPublicCurrentResponse } from "../_lib/armIndicatorService.js";
 
 function sendJson(response, statusCode, payload) {
   response.statusCode = statusCode;
@@ -23,11 +23,11 @@ export default async function handler(request, response) {
       });
     }
 
-    return sendJson(response, 200, snapshot);
+    return sendJson(response, 200, toPublicCurrentResponse(snapshot));
   } catch (error) {
     return sendJson(response, 503, {
       status: "unavailable",
-      message: error instanceof Error ? error.message : "Indicator data is not available yet",
+      message: "Indicator data is not available yet",
     });
   }
 }
