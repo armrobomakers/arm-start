@@ -10,6 +10,7 @@ import {
   StageProgress,
   StepList,
 } from "../components/DocComponents";
+import { ArmInvestorIndicator } from "../components/ArmInvestorIndicator";
 import { guideMeta, sectionsBySlug } from "../content";
 import brandLogo from "../assets/brand/logo.svg";
 
@@ -35,12 +36,16 @@ export function DocPage({ slug }) {
               <a className="primary-action" href={guideMeta.tickmillLink} target="_blank" rel="noreferrer">
                 Ссылка Tickmill
               </a>
+              <a className="button button-secondary" href="/#arm-investor-indicator">
+                ARM Indicator
+              </a>
               <span className="soft-pill">IB: {guideMeta.ibCode}</span>
             </div>
           ) : null}
         </div>
       </section>
 
+      {isOverview ? <ArmInvestorIndicator /> : null}
       <StageProgress currentSlug={section.slug} />
 
       {isOverview ? <Prerequisites /> : null}
