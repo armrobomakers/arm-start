@@ -7,7 +7,7 @@ const BLOB_STORAGE_PATH = "arm-indicator/state.json";
 
 function resolveStorageMode() {
   const mode = (process.env.ARM_INDICATOR_STORAGE || "local").toLowerCase();
-  return mode === "blob" ? "blob" : "local";
+  return ["blob", "none"].includes(mode) ? mode : "local";
 }
 
 async function readLocalState() {
@@ -56,6 +56,10 @@ async function writeBlobState(state) {
 export async function readIndicatorState() {
   const mode = resolveStorageMode();
 
+  if (mode === "none") {
+    return null;
+  }
+
   if (mode === "blob") {
     return readBlobState();
   }
@@ -65,6 +69,10 @@ export async function readIndicatorState() {
 
 export async function writeIndicatorState(state) {
   const mode = resolveStorageMode();
+
+  if (mode === "none") {
+    return state;
+  }
 
   if (mode === "blob") {
     return writeBlobState(state);

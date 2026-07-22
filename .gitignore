@@ -7,3 +7,8 @@ dist
 .env.*.local
 .local-data/
 .vercel/
+worker/arm-indicator-sync/config/worker.env
+worker/arm-indicator-sync/runtime/
+worker/arm-indicator-sync/logs/
+worker/arm-indicator-sync/state/
+worker/arm-indicator-sync/outbox/

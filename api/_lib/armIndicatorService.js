@@ -13,6 +13,7 @@ import {
   MyfxbookStaleDataError,
 } from "./myfxbookErrors.js";
 import { syncIndicatorFromMyfxbook } from "./myfxbookClient.js";
+import { applyDynamicStale } from "./armIndicatorPublish.js";
 
 const MAX_HISTORY_LENGTH = 180;
 
@@ -96,8 +97,9 @@ export async function loadPublicCurrentSnapshot() {
   }
 
   return {
-    ...state.current,
-    stale: Boolean(state.current.stale),
+    ...applyDynamicStale(state.current, {
+      maxAgeDays: Number(process.env.ARM_INDICATOR_MAX_AGE_DAYS || 4),
+    }),
   };
 }
 
