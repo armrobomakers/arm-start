@@ -21,6 +21,16 @@ async function main() {
   try {
     const config = await loadConfig(process.env.ARM_WORKER_ENV_PATH || paths.config);
     await log("started", { dryRun: process.argv.includes("--dry-run") });
+    const pendingFiles = (await fs.readdir(paths.outbox).catch(() => []))
+      .filter((file) => file.startsWith("pending-") && file.endsWith(".json"))
+      .sort();
+    if (pendingFiles.length && !process.argv.includes("--dry-run")) {
+      const pendingPath = path.join(paths.outbox, pendingFiles[0]);
+      const pendingPayload = JSON.parse(await fs.readFile(pendingPath, "utf8"));
+      await publishPayload(pendingPayload, config, { sleep });
+      await fs.rm(pendingPath, { force: true });
+      await log("outbox_replayed", { points: pendingPayload.dailyGain?.length || 0 });
+    }
     let result;
     for (let attempt = 1; attempt <= 2; attempt += 1) {
       try { result = await fetchDailyGain(config); break; }
