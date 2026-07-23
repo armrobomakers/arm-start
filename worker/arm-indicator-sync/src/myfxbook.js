@@ -7,10 +7,17 @@ export class MyfxbookError extends Error {
 async function request(endpoint, params, { fetchImpl, timeoutMs }) {
   const url = new URL(`https://www.myfxbook.com/api/${endpoint}.json`);
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
-  const response = await fetchImpl(url, { signal: AbortSignal.timeout(timeoutMs) });
+  const response = await fetchImpl(url, {
+    signal: AbortSignal.timeout(timeoutMs),
+    headers: { Accept: "application/json" },
+  });
   if (!response.ok) throw new MyfxbookError(`Myfxbook HTTP ${response.status}`, "http");
   const body = await response.json();
-  if (body.error === true || body.error === "true") throw new MyfxbookError(body.message || "Myfxbook API error", "api");
+  if (body.error === true || body.error === "true") {
+    const message = body.message || "Myfxbook API error";
+    const code = String(message).toLowerCase().includes("invalid session") ? "session" : "api";
+    throw new MyfxbookError(message, code);
+  }
   return body;
 }
 
