@@ -1,0 +1,133 @@
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import logging
+import signal
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+
+from .collector import collect_snapshot, sync_deals
+from .config import Config, ConfigError, load_config
+from .database import Database
+from .daily_returns import calculate_daily_returns
+from .deals import load_policy
+from .doctor import doctor
+from .locks import LockBusyError, ProcessLock
+from .logging_setup import configure_logging, log
+from .mt5_adapter import MT5Adapter, MT5SecurityError
+from .outbox import queue_payload, replay_oldest, pending_payloads
+from .publisher import Publisher, canonical_payload, sign_payload
+from .seed import combine_seed_and_live, validate_seed
+
+
+def _adapter(config: Config) -> MT5Adapter:
+    return MT5Adapter(config.mt5_terminal_path, config.expected_login, config.expected_server, config.expected_company)
+
+
+def _payload(config: Config, database: Database) -> tuple[dict, bool]:
+    seed = validate_seed(config.seed_path)
+    cutoff = seed[-1]["date"]
+    publish_after = datetime.now(timezone.utc).timestamp() - (config.publish_delay_minutes * 60)
+    live = [
+        {"date": row["date"], "value": row["return_pct"]}
+        for row in database.daily_returns(complete_only=True)
+        if row["date"] > cutoff and datetime.fromisoformat(row["calculated_at"].replace("Z", "+00:00")).timestamp() <= publish_after
+    ]
+    combined = combine_seed_and_live(seed, live)
+    return canonical_payload(config.system_id, config.account_name, combined), bool(live)
+
+
+def run_cycle(config: Config, publish: bool, logger: logging.Logger) -> dict[str, object]:
+    database = Database(config.db_path)
+    database.initialize()
+    adapter = _adapter(config)
+    try:
+        identity = adapter.connect_read_only()
+        log(logger, logging.INFO, "MT5 connected", login=identity.login, server=identity.server, read_only=True)
+        collect_snapshot(adapter, database)
+        sync_deals(adapter, database)
+        returns = calculate_daily_returns(database.snapshots(), database.deals(), config.day_timezone, config.day_close_time, config.day_close_tolerance_seconds, config.flow_snapshot_max_gap_seconds, load_policy(config.cashflow_policy_path))
+        database.upsert_daily_returns(returns)
+        payload, ready = _payload(config, database)
+        raw_payload = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        hmac_ok = sign_payload(config.publish_secret, "0", raw_payload).startswith("v1=")
+        summary = {"mt5": "OK", "read_only": "OK", "login_match": True, "server_match": True, "seed": "OK", "hmac": "OK" if hmac_ok else "FAIL", "complete_live_days": sum(1 for item in returns if item["complete"]), "data_as_of": payload["dailyGain"][-1]["date"] if payload["dailyGain"] else None, "daily_gain_points": len(payload["dailyGain"]), "outbox": len(pending_payloads(config.outbox_path)), "ready_for_publish": ready, "publish": "skipped_dry_run" if not publish else "pending"}
+        if publish:
+            publisher = Publisher(config.publish_url, config.publish_secret, config.bypass_secret, config.http_timeout_seconds)
+            replay_oldest(config.outbox_path, lambda item: publisher.publish(item))
+            if ready:
+                try:
+                    result = publisher.publish(payload)
+                except Exception:
+                    queue_payload(config.outbox_path, payload)
+                    raise
+                digest = hashlib.sha256(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
+                database.mark_published(payload["dailyGain"][-1]["date"], digest)
+                summary["publish"] = f"ok_http_{result.status}"
+        return summary
+    finally:
+        adapter.close()
+
+
+def command_doctor(config: Config) -> int:
+    result = doctor(config, _adapter(config))
+    print(json.dumps(result, ensure_ascii=True))
+    ok = all(value not in {"FAIL", False} for value in result.values())
+    print("DOCTOR_OK" if ok else "DOCTOR_FAILED")
+    return 0 if ok else 1
+
+
+def command_status(config: Config) -> int:
+    database = Database(config.db_path)
+    database.initialize()
+    print(json.dumps({"db": str(config.db_path), "snapshots": len(database.snapshots()), "deals": len(database.deals()), "complete_days": len(database.daily_returns(True)), "pending_outbox": len(pending_payloads(config.outbox_path)), "last_publish": database.get_state("last_successful_publish")}, ensure_ascii=True))
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed"])
+    parser.add_argument("path", nargs="?")
+    parser.add_argument("--env", dest="env_path")
+    args = parser.parse_args(argv)
+    if args.command == "validate-seed":
+        print(json.dumps({"valid": True, "points": len(validate_seed(Path(args.path)))}, ensure_ascii=True)); return 0
+    config = load_config(args.env_path)
+    if args.command == "doctor": return command_doctor(config)
+    if args.command == "status": return command_status(config)
+    logger = configure_logging(config.db_path.parent.parent / "logs")
+    lock = ProcessLock(config.db_path.parent.parent / "run" / "worker.lock")
+    try:
+        with lock:
+            if args.command == "dry-run":
+                summary = run_cycle(config, False, logger)
+                for key, label in (("mt5", "MT5"), ("read_only", "READ_ONLY"), ("login_match", "LOGIN_MATCH"), ("server_match", "SERVER_MATCH"), ("seed", "SEED"), ("complete_live_days", "COMPLETE_LIVE_DAYS"), ("data_as_of", "DATA_AS_OF"), ("daily_gain_points", "DAILY_GAIN_POINTS"), ("outbox", "OUTBOX"), ("publish", "PUBLISH")):
+                    print(f"{label}: {summary.get(key)}")
+                return 0
+            if args.command == "daemon":
+                stopping = False
+                def stop(*_: object) -> None:
+                    nonlocal stopping; stopping = True
+                signal.signal(signal.SIGINT, stop); signal.signal(signal.SIGTERM, stop)
+                backoff = config.sample_interval_seconds
+                while not stopping:
+                    try:
+                        run_cycle(config, True, logger)
+                        backoff = config.sample_interval_seconds
+                    except Exception as exc:
+                        log(logger, logging.ERROR, "worker cycle failed", error=type(exc).__name__, message=str(exc))
+                        backoff = min(max(config.sample_interval_seconds, backoff * 2), 300)
+                    time.sleep(backoff)
+                return 0
+    except LockBusyError:
+        return 50
+    except (ConfigError, MT5SecurityError, Exception) as exc:
+        print(json.dumps({"ok": False, "error": type(exc).__name__, "message": str(exc)}, ensure_ascii=True)); return 30
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

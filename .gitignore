@@ -12,3 +12,13 @@ worker/arm-indicator-sync/runtime/
 worker/arm-indicator-sync/logs/
 worker/arm-indicator-sync/state/
 worker/arm-indicator-sync/outbox/
+worker/arm-indicator-mt5/.venv/
+worker/arm-indicator-mt5/venv/
+worker/arm-indicator-mt5/__pycache__/
+worker/arm-indicator-mt5/src/**/__pycache__/
+worker/arm-indicator-mt5/tests/**/__pycache__/
+worker/arm-indicator-mt5/data/
+worker/arm-indicator-mt5/logs/
+worker/arm-indicator-mt5/outbox/
+worker/arm-indicator-mt5/run/
+worker/arm-indicator-mt5/.pytest_cache/
