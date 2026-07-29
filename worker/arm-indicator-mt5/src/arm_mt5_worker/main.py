@@ -75,7 +75,10 @@ def run_cycle(config: Config, publish: bool, logger: logging.Logger) -> dict[str
 def command_doctor(config: Config) -> int:
     result = doctor(config, _adapter(config))
     print(json.dumps(result, ensure_ascii=True))
-    ok = all(value not in {"FAIL", False} for value in result.values())
+    ok = all(
+        value != "FAIL" and not (key == "trade_allowed" and value is True)
+        for key, value in result.items()
+    )
     print("DOCTOR_OK" if ok else "DOCTOR_FAILED")
     return 0 if ok else 1
 
