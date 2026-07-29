@@ -95,7 +95,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command == "validate-seed":
         print(json.dumps({"valid": True, "points": len(validate_seed(Path(args.path)))}, ensure_ascii=True)); return 0
-    config = load_config(args.env_path)
+    config = load_config(args.env_path, require_runtime=args.command not in {"doctor", "status"})
     if args.command == "doctor": return command_doctor(config)
     if args.command == "status": return command_status(config)
     logger = configure_logging(config.db_path.parent.parent / "logs")

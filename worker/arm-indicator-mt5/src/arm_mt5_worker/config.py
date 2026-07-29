@@ -69,7 +69,7 @@ class Config:
     http_timeout_seconds: int
 
 
-def load_config(env_path: str | Path | None = None) -> Config:
+def load_config(env_path: str | Path | None = None, *, require_runtime: bool = True) -> Config:
     path = Path(env_path or os.environ.get("ARM_WORKER_ENV_PATH", "C:/ARM/indicator-mt5-worker/config/worker.env"))
     values = _parse_env(path)
     terminal = Path(_required(values, "MT5_TERMINAL_PATH"))
@@ -79,10 +79,16 @@ def load_config(env_path: str | Path | None = None) -> Config:
         login = int(_required(values, "MT5_EXPECTED_LOGIN"))
     except ValueError as exc:
         raise ConfigError("MT5_EXPECTED_LOGIN must be an integer") from exc
-    timezone = _required(values, "ARM_DAY_TIMEZONE")
-    publish_url = _required(values, "ARM_INDICATOR_PUBLISH_URL")
-    publish_secret = _required(values, "ARM_INDICATOR_PUBLISH_SECRET")
-    if len(publish_secret) < 32:
+    timezone = _value(values, "ARM_DAY_TIMEZONE", "") or ""
+    publish_url = _value(values, "ARM_INDICATOR_PUBLISH_URL", "") or ""
+    publish_secret = _value(values, "ARM_INDICATOR_PUBLISH_SECRET", "") or ""
+    if require_runtime and not timezone:
+        raise ConfigError("Missing required configuration: ARM_DAY_TIMEZONE")
+    if require_runtime and not publish_url:
+        raise ConfigError("Missing required configuration: ARM_INDICATOR_PUBLISH_URL")
+    if require_runtime and not publish_secret:
+        raise ConfigError("Missing required configuration: ARM_INDICATOR_PUBLISH_SECRET")
+    if publish_secret and len(publish_secret) < 32:
         raise ConfigError("ARM_INDICATOR_PUBLISH_SECRET must be at least 32 characters")
     policy = _value(values, "ARM_CASHFLOW_POLICY_PATH")
     return Config(
