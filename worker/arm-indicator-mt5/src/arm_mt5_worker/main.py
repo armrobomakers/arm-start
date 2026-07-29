@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import logging
+import os
 import signal
 import time
 from datetime import datetime, timezone
@@ -18,6 +19,7 @@ from .doctor import doctor
 from .locks import LockBusyError, ProcessLock
 from .logging_setup import configure_logging, log
 from .mt5_adapter import MT5Adapter, MT5SecurityError
+from .native_export import NativeExportError, inspect_native_export
 from .outbox import queue_payload, replay_oldest, pending_payloads
 from .publisher import Publisher, canonical_payload, sign_payload
 from .seed import combine_seed_and_live, validate_seed
@@ -90,14 +92,35 @@ def command_status(config: Config) -> int:
     return 0
 
 
+def command_inspect_native_export(path: str | None) -> int:
+    directory = Path(path or os.environ.get("ARM_NATIVE_EXPORT_DIR", "C:/ARM/indicator-mt5-worker/data/native-export"))
+    try:
+        result = inspect_native_export(directory)
+    except NativeExportError as exc:
+        print(f"MANIFEST VALID: NO ({exc})")
+        return 30
+    manifest = result["manifest"]
+    print("MANIFEST VALID: YES")
+    print(f"DEALS: {result['deals']}")
+    print(f"ORDERS: {result['orders']}")
+    print(f"FIRST DEAL: {manifest['first_deal_time']}")
+    print(f"LAST DEAL: {manifest['last_deal_time']}")
+    print(f"DEAL TYPES: {json.dumps(result['deal_types'], ensure_ascii=True)}")
+    print(f"SYMBOLS: {', '.join(result['symbols']) if result['symbols'] else '-'}")
+    print(f"POSITION IDS: {len(result['position_ids'])}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed"])
+    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export"])
     parser.add_argument("path", nargs="?")
     parser.add_argument("--env", dest="env_path")
     args = parser.parse_args(argv)
     if args.command == "validate-seed":
         print(json.dumps({"valid": True, "points": len(validate_seed(Path(args.path)))}, ensure_ascii=True)); return 0
+    if args.command == "inspect-native-export":
+        return command_inspect_native_export(args.path)
     config = load_config(args.env_path, require_runtime=args.command not in {"doctor", "status"})
     if args.command == "doctor": return command_doctor(config)
     if args.command == "status": return command_status(config)
