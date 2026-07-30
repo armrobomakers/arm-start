@@ -149,7 +149,7 @@ def analyze_native_history(directory: Path, *, today: date | None = None) -> dic
     request_path = directory / "price-requests.csv"
     temporary = request_path.with_suffix(".csv.tmp")
     with temporary.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, delimiter=";", lineterminator="\n")
         writer.writerow(("symbol", "requested_server_time"))
         for symbol, requested in sorted(requests):
             writer.writerow((symbol, requested))
@@ -160,7 +160,7 @@ def analyze_native_history(directory: Path, *, today: date | None = None) -> dic
     calc_path = directory / "ordercalc-requests.csv"
     calc_temporary = calc_path.with_suffix(".csv.tmp")
     with calc_temporary.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, delimiter=";", lineterminator="\n")
         writer.writerow(("position_id", "symbol", "direction", "volume", "open_price", "close_price", "realized_profit"))
         for state in positions.values():
             if state.entries == 1 and state.exits == 1 and state.close_time and not state.invalid and state.open_price > 0 and state.close_price > 0:

@@ -33,3 +33,19 @@ def test_native_analysis_builds_unique_overnight_requests(tmp_path):
     assert result["overnight_position_days"] == 1
     assert result["price_requests"] == 1
     assert (export / "price-requests.csv").exists()
+
+
+def test_request_files_use_semicolon_and_expected_row_counts(tmp_path):
+    export = tmp_path / "ARMIndicator"
+    _write_export(export)
+    result = analyze_native_history(export, today=__import__("datetime").date(2026, 7, 30))
+    price_lines = (export / "price-requests.csv").read_text(encoding="utf-8").splitlines()
+    calc_lines = (export / "ordercalc-requests.csv").read_text(encoding="utf-8").splitlines()
+    assert len(price_lines) == result["price_requests"] + 1
+    assert len(calc_lines) == result["ordercalc_requests"] + 1
+    assert ";" in price_lines[0] and "," not in price_lines[0]
+    assert ";" in calc_lines[0] and "," not in calc_lines[0]
+    assert len(next(csv.reader([price_lines[0]], delimiter=";"))) == 2
+    assert len(next(csv.reader([calc_lines[0]], delimiter=";"))) == 7
+    assert len(next(csv.reader([price_lines[0], price_lines[1]], delimiter=";"))) == 2
+    assert len(next(csv.reader([calc_lines[0], calc_lines[1]], delimiter=";"))) == 7
