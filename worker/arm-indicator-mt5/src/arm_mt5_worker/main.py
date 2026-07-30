@@ -20,6 +20,7 @@ from .locks import LockBusyError, ProcessLock
 from .logging_setup import configure_logging, log
 from .mt5_adapter import MT5Adapter, MT5SecurityError
 from .native_export import NativeExportError, inspect_native_export
+from .native_analysis import analyze_native_history
 from .outbox import queue_payload, replay_oldest, pending_payloads
 from .publisher import Publisher, canonical_payload, sign_payload
 from .seed import combine_seed_and_live, validate_seed
@@ -111,9 +112,48 @@ def command_inspect_native_export(path: str | None) -> int:
     return 0
 
 
+def command_analyze_native_history(path: str | None) -> int:
+    directory = Path(path or os.environ.get("ARM_NATIVE_EXPORT_DIR", "C:/ARM/indicator-mt5-worker/data/native-export"))
+    try:
+        result = analyze_native_history(directory)
+    except (NativeExportError, OSError, ValueError) as exc:
+        print(f"ANALYSIS FAILED: {exc}")
+        return 30
+    positions = result["positions"]
+    closed = [item for item in positions.values() if item.close_time and item.remaining_volume <= 1e-9 and not item.invalid]
+    open_positions = [item for item in positions.values() if item.remaining_volume > 1e-9]
+    single = [item for item in positions.values() if item.entries == 1 and item.exits == 1 and not item.invalid]
+    partial = [item for item in positions.values() if item.partial]
+    reversed_positions = [item for item in positions.values() if item.reversals]
+    invalid = [item for item in positions.values() if item.invalid]
+    categories = result["balance_categories"]
+    totals = result["balance_totals"]
+    print(f"POSITIONS TOTAL: {len(positions)}")
+    print(f"POSITIONS CLOSED: {len(closed)}")
+    print(f"POSITIONS STILL OPEN: {len(open_positions)}")
+    print(f"SINGLE ENTRY/SINGLE EXIT: {len(single)}")
+    print(f"PARTIAL POSITIONS: {len(partial)}")
+    print(f"REVERSED POSITIONS: {len(reversed_positions)}")
+    print(f"INVALID POSITION LIFECYCLES: {len(invalid)}")
+    print(f"BALANCE OPERATIONS: {len(result['balances'])}")
+    print(f"DEPOSITS: {categories['deposit']}")
+    print(f"WITHDRAWALS: {categories['withdrawal']}")
+    print(f"OTHER: {categories['other']}")
+    print(f"AMBIGUOUS: {categories['ambiguous']}")
+    print(f"DEPOSIT TOTAL: {totals['deposit']:.2f}")
+    print(f"WITHDRAWAL TOTAL: {totals['withdrawal']:.2f}")
+    print(f"LAST 120 DAYS: {result['last_120_days']}")
+    print(f"OVERNIGHT POSITION-DAYS: {result['overnight_position_days']}")
+    print(f"UNIQUE PRICE REQUESTS: {result['price_requests']}")
+    print(f"SYMBOLS REQUIRING PRICES: {', '.join(result['symbols_requiring_prices']) or '-'}")
+    print(f"ORDERCALCPROFIT REQUESTS: {result['ordercalc_requests']}")
+    print("DAILYGAIN CREATED: NO")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export"])
+    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export", "analyze-native-history"])
     parser.add_argument("path", nargs="?")
     parser.add_argument("--env", dest="env_path")
     args = parser.parse_args(argv)
@@ -121,6 +161,8 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"valid": True, "points": len(validate_seed(Path(args.path)))}, ensure_ascii=True)); return 0
     if args.command == "inspect-native-export":
         return command_inspect_native_export(args.path)
+    if args.command == "analyze-native-history":
+        return command_analyze_native_history(args.path)
     config = load_config(args.env_path, require_runtime=args.command not in {"doctor", "status"})
     if args.command == "doctor": return command_doctor(config)
     if args.command == "status": return command_status(config)
