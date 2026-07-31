@@ -3,6 +3,7 @@ from pathlib import Path
 
 SOURCE = (Path(__file__).parents[1] / "mql5" / "ARMHistoryExporter.mq5").read_text(encoding="utf-8")
 CONVERSION_SOURCE = (Path(__file__).parents[1] / "mql5" / "ARMConversionPriceExporter.mq5").read_text(encoding="utf-8")
+METADATA_SOURCE = (Path(__file__).parents[1] / "mql5" / "ARMSymbolMetadataExporter.mq5").read_text(encoding="utf-8")
 
 
 def test_native_exporter_is_read_only():
@@ -40,3 +41,13 @@ def test_conversion_price_exporter_uses_required_schema_and_progressive_windows(
     assert '"m1_fallback","approximate"' in CONVERSION_SOURCE
     assert '"missing"' in CONVERSION_SOURCE
     assert 'FileMove(TMP,FILE_COMMON,OUT,FILE_COMMON|FILE_REWRITE)' in CONVERSION_SOURCE
+
+
+def test_metadata_exporter_contains_profit_fields_and_remains_read_only():
+    forbidden = ("OrderSend", "OrderSendAsync", "CTrade", "trade.Buy", "trade.Sell", "PositionClose", "TRADE_ACTION_")
+    for token in forbidden:
+        assert token not in METADATA_SOURCE
+    for token in ("SYMBOL_TRADE_TICK_SIZE", "SYMBOL_TRADE_TICK_VALUE", "SYMBOL_TRADE_TICK_VALUE_PROFIT", "SYMBOL_TRADE_TICK_VALUE_LOSS", "SYMBOL_TRADE_FACE_VALUE", "SYMBOL_TRADE_LIQUIDITY_RATE"):
+        assert token in METADATA_SOURCE
+    assert "tick_size" in METADATA_SOURCE and "tick_value_profit" in METADATA_SOURCE
+    assert "FileMove(TMP,FILE_COMMON,OUT,FILE_COMMON|FILE_REWRITE)" in METADATA_SOURCE

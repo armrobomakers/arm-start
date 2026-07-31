@@ -32,6 +32,7 @@ class PositionState:
     partial: bool = False
     invalid: bool = False
     events: list[tuple[datetime, float]] = field(default_factory=list)
+    timeline: list[tuple[datetime, float, float, float]] = field(default_factory=list)
 
 
 def _dt(value: str) -> datetime:
@@ -64,6 +65,7 @@ def _position_lifecycles(deals: list[dict[str, str]]) -> dict[str, PositionState
     for position_id, rows in grouped.items():
         state = PositionState(position_id)
         net_volume = 0.0
+        weighted_open_price = 0.0
         for row in sorted(rows, key=lambda item: (item.get("time_msc", ""), item.get("ticket", ""))):
             event_time = _dt(row["time"])
             volume = _number(row["volume"])
@@ -82,22 +84,29 @@ def _position_lifecycles(deals: list[dict[str, str]]) -> dict[str, PositionState
                 state.entries += 1
                 state.initial_volume = max(state.initial_volume, abs(signed))
                 state.maximum_volume = max(state.maximum_volume, abs(net_volume + signed))
+                old_volume = abs(net_volume)
                 net_volume += signed
+                new_volume = abs(net_volume)
+                price = _number(row.get("price", ""))
+                weighted_open_price = ((old_volume * weighted_open_price) + (abs(signed) * price)) / new_volume if new_volume else 0.0
                 state.events.append((event_time, net_volume))
+                state.timeline.append((event_time, signed, new_volume, weighted_open_price))
                 if state.open_time is None:
                     state.open_time = event_time
                     state.direction = "BUY" if signed > 0 else "SELL"
-                    state.open_price = _number(row.get("price", ""))
+                state.open_price = weighted_open_price
             elif entry.endswith("INOUT"):
                 state.reversals += int(bool(net_volume and (net_volume > 0) != (signed > 0)))
                 state.entries += 1
                 state.initial_volume = max(state.initial_volume, abs(signed))
                 net_volume = signed
+                weighted_open_price = _number(row.get("price", ""))
                 state.maximum_volume = max(state.maximum_volume, abs(net_volume))
                 state.events.append((event_time, net_volume))
+                state.timeline.append((event_time, signed, abs(net_volume), weighted_open_price))
                 state.open_time = state.open_time or event_time
                 state.direction = "BUY" if signed > 0 else "SELL"
-                state.open_price = state.open_price or _number(row.get("price", ""))
+                state.open_price = weighted_open_price
             elif entry.endswith(("OUT", "OUT_BY")):
                 state.exits += 1
                 if abs(signed) > abs(net_volume) + 1e-9:
@@ -106,9 +115,12 @@ def _position_lifecycles(deals: list[dict[str, str]]) -> dict[str, PositionState
                     state.partial = True
                 net_volume += signed
                 state.events.append((event_time, net_volume))
+                remaining = abs(net_volume)
+                state.timeline.append((event_time, signed, remaining, weighted_open_price if remaining else 0.0))
                 if abs(net_volume) <= 1e-9:
                     state.close_time = event_time
                     state.close_price = _number(row.get("price", ""))
+                    weighted_open_price = 0.0
             else:
                 state.invalid = True
         state.remaining_volume = abs(net_volume)

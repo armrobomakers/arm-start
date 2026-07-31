@@ -13,8 +13,20 @@ from .native_export import NativeExportError, _read_csv
 PRICE_HEADERS = {"symbol", "requested_server_time"}
 METADATA_HEADERS = {
     "symbol", "currency_base", "currency_profit", "currency_margin", "trade_calc_mode",
-    "trade_contract_size", "point", "digits", "account_currency",
+    "trade_contract_size", "point", "digits", "tick_size", "tick_value", "tick_value_profit",
+    "tick_value_loss", "face_value", "liquidity_rate", "account_currency",
 }
+
+
+def calculate_custom_profit(mode: int, direction: str, volume: float, open_price: float, close_price: float, contract_size: float, tick_size: float | None = None, tick_value: float | None = None) -> float | None:
+    delta = close_price - open_price if direction == "BUY" else open_price - close_price
+    if mode in (0, 3):
+        return delta * contract_size * volume
+    if mode == 2:
+        if not tick_size or not tick_value or tick_size <= 0 or tick_value <= 0:
+            return None
+        return delta / tick_size * tick_value * volume
+    return None
 CALC_HEADERS = {
     "position_id", "symbol", "realized_profit", "calculated_profit", "abs_error", "status",
 }
@@ -95,6 +107,41 @@ def _write_conversion_requests(path: Path, requests: list[dict[str, str]]) -> No
     os.replace(temporary, path)
 
 
+def _write_request_file(path: Path, header: tuple[str, ...], rows: list[tuple[object, ...]]) -> None:
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    with temporary.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle, delimiter=";", lineterminator="\n")
+        writer.writerow(header)
+        writer.writerows(rows)
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(temporary, path)
+
+
+def _cashflow_requests(deals: list[dict[str, str]], positions: dict[str, PositionState], metadata: dict[str, dict[str, str]], conversion: dict[str, dict[str, str]], first_day: date, last_day: date) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+    flows = [row for row in deals if row.get("type_name", "").endswith("BALANCE") and first_day <= _dt(row["time"]).date() <= last_day]
+    price_rows = []
+    conversion_rows = []
+    for flow in flows:
+        flow_time = _dt(flow["time"])
+        flow_id = flow.get("ticket", "")
+        for position_id, state in positions.items():
+            before = [event for event in state.timeline if event[0] < flow_time and event[2] > 1e-9]
+            if not before:
+                continue
+            timestamp, _, remaining, weighted_price = before[-1]
+            row = {"flow_id": flow_id, "source_symbol": state.symbol, "requested_server_time": flow["time"], "position_id": position_id, "direction": state.direction, "volume": f"{remaining:.12g}", "weighted_open_price": f"{weighted_price:.12g}"}
+            price_rows.append(row)
+            source = metadata.get(state.symbol, {})
+            profit_currency = source.get("currency_profit", "")
+            mapping = conversion.get(profit_currency)
+            if mapping and mapping.get("status") == "AVAILABLE":
+                conversion_rows.append({"flow_id": flow_id, "conversion_symbol": mapping["conversion_symbol"], "requested_server_time": flow["time"], "direction": mapping["direction"], "source_symbol": state.symbol, "profit_currency": profit_currency, "account_currency": mapping["account_currency"]})
+    price_rows = list({tuple(row.items()): row for row in price_rows}.values())
+    conversion_rows = list({tuple(row.items()): row for row in conversion_rows}.values())
+    return price_rows, conversion_rows
+
+
 def analyze_profit_model(directory: Path, *, today: date | None = None) -> dict[str, object]:
     metadata_path = directory / "symbol-metadata.csv"
     metadata = _read_optional_csv(metadata_path, METADATA_HEADERS)
@@ -127,6 +174,11 @@ def analyze_profit_model(directory: Path, *, today: date | None = None) -> dict[
     metadata_by_symbol = {row["symbol"]: row for row in metadata}
     conversion = _conversion_map(metadata, account_currency)
     conversion_by_currency = {row["profit_currency"]: row for row in conversion}
+    cashflow_prices, cashflow_conversions = _cashflow_requests(deals, positions, metadata_by_symbol, conversion_by_currency, first_day, last_complete)
+    if cashflow_prices:
+        _write_request_file(directory / "cashflow-price-requests.csv", ("flow_id", "source_symbol", "requested_server_time", "position_id", "direction", "volume", "weighted_open_price"), [tuple(row[key] for key in ("flow_id", "source_symbol", "requested_server_time", "position_id", "direction", "volume", "weighted_open_price")) for row in cashflow_prices])
+    if cashflow_conversions:
+        _write_request_file(directory / "cashflow-conversion-price-requests.csv", ("flow_id", "conversion_symbol", "requested_server_time", "direction", "source_symbol", "profit_currency", "account_currency"), [tuple(row[key] for key in ("flow_id", "conversion_symbol", "requested_server_time", "direction", "source_symbol", "profit_currency", "account_currency")) for row in cashflow_conversions])
     conversion_requests = []
     for request in recent_requests:
         source = metadata_by_symbol.get(request["symbol"])
@@ -171,7 +223,7 @@ def analyze_profit_model(directory: Path, *, today: date | None = None) -> dict[
             first_deal = details[0] if details else {}
             zero_anomalies.append({"position_id": state.position_id, "symbol": state.symbol, "open_time": state.open_time, "close_time": state.close_time, "direction": state.direction, "volume": state.initial_volume, "open_price": state.open_price, "close_price": state.close_price, "deal_reason": first_deal.get("reason_name", ""), "deal_entry": first_deal.get("entry_name", ""), "comment_category": _comment_category(first_deal.get("comment", "")), "actual_profit": _number(row["realized_profit"]), "calculated_profit": _number(row["calculated_profit"])})
     price_ok = sum(row.get("status") == "ok" for row in prices)
-    return {"account_currency": account_currency, "positions": recent_positions, "samples": recent_requests, "symbols": sorted({row["symbol"] for row in recent_requests}), "metadata": metadata_by_symbol, "metrics": metrics, "classifications": classifications, "conversion": conversion, "conversion_requests": conversion_requests, "zero_anomalies": zero_anomalies, "price_coverage": (price_ok, len(requests)), "_balances": balances}
+    return {"account_currency": account_currency, "positions": recent_positions, "samples": recent_requests, "symbols": sorted({row["symbol"] for row in recent_requests}), "metadata": metadata_by_symbol, "metrics": metrics, "classifications": classifications, "conversion": conversion, "conversion_requests": conversion_requests, "cashflow_price_requests": cashflow_prices, "cashflow_conversion_requests": cashflow_conversions, "zero_anomalies": zero_anomalies, "price_coverage": (price_ok, len(requests)), "_balances": balances}
 
 
 def render_profit_model(result: dict[str, object]) -> str:
@@ -190,5 +242,5 @@ def render_profit_model(result: dict[str, object]) -> str:
     lines.append(f"CONVERSION CURRENCIES: {', '.join(row['profit_currency'] for row in conversion) or '-'}")
     lines.append(f"CONVERSION SYMBOLS: {', '.join(row['conversion_symbol'] for row in conversion if row['conversion_symbol']) or '-'}")
     lines.append(f"CONVERSION REQUESTS: {len(result['conversion_requests'])}")
-    lines += [f"BALANCE INFLOWS: {len(inflows)}", f"BALANCE OUTFLOWS: {len(outflows)}", f"BALANCE INFLOW TOTAL: {sum(row['amount'] for row in inflows):.2f}", f"BALANCE OUTFLOW TOTAL: {sum(row['amount'] for row in outflows):.2f}", f"PRICE COVERAGE: {result['price_coverage'][0]}/{result['price_coverage'][1]}", "HISTORICAL PROFIT MODEL READY: YES", "DAILYGAIN CREATED: NO", "PUBLISH: NO", "PRODUCTION CHANGED: NO"]
+    lines += [f"BALANCE INFLOWS: {len(inflows)}", f"BALANCE OUTFLOWS: {len(outflows)}", f"BALANCE INFLOW TOTAL: {sum(row['amount'] for row in inflows):.2f}", f"BALANCE OUTFLOW TOTAL: {sum(row['amount'] for row in outflows):.2f}", f"CASHFLOW PRICE REQUESTS: {len(result['cashflow_price_requests'])}", f"CASHFLOW CONVERSION REQUESTS: {len(result['cashflow_conversion_requests'])}", f"PRICE COVERAGE: {result['price_coverage'][0]}/{result['price_coverage'][1]}", "HISTORICAL PROFIT MODEL READY: YES", "DAILYGAIN CREATED: NO", "PUBLISH: NO", "PRODUCTION CHANGED: NO"]
     return "\n".join(lines)
