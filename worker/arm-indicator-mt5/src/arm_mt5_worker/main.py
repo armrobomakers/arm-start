@@ -21,6 +21,7 @@ from .logging_setup import configure_logging, log
 from .mt5_adapter import MT5Adapter, MT5SecurityError
 from .native_export import NativeExportError, inspect_native_export
 from .native_analysis import analyze_native_history
+from .profit_model import analyze_profit_model, render_profit_model
 from .outbox import queue_payload, replay_oldest, pending_payloads
 from .publisher import Publisher, canonical_payload, sign_payload
 from .seed import combine_seed_and_live, validate_seed
@@ -153,7 +154,7 @@ def command_analyze_native_history(path: str | None) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export", "analyze-native-history"])
+    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export", "analyze-native-history", "analyze-profit-model"])
     parser.add_argument("path", nargs="?")
     parser.add_argument("--env", dest="env_path")
     args = parser.parse_args(argv)
@@ -163,6 +164,13 @@ def main(argv: list[str] | None = None) -> int:
         return command_inspect_native_export(args.path)
     if args.command == "analyze-native-history":
         return command_analyze_native_history(args.path)
+    if args.command == "analyze-profit-model":
+        try:
+            print(render_profit_model(analyze_profit_model(Path(args.path or os.environ.get("ARM_NATIVE_EXPORT_DIR", "C:/ARM/indicator-mt5-worker/data/native-export")))))
+            return 0
+        except (NativeExportError, OSError, ValueError) as exc:
+            print(f"ANALYSIS FAILED: {exc}")
+            return 30
     config = load_config(args.env_path, require_runtime=args.command not in {"doctor", "status"})
     if args.command == "doctor": return command_doctor(config)
     if args.command == "status": return command_status(config)
