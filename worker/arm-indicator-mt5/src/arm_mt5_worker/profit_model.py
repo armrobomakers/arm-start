@@ -118,6 +118,51 @@ def _write_request_file(path: Path, header: tuple[str, ...], rows: list[tuple[ob
     os.replace(temporary, path)
 
 
+def prepare_last120_validation(directory: Path, *, today: date | None = None) -> dict[str, object]:
+    metadata_rows = _read_optional_csv(directory / "symbol-metadata.csv", METADATA_HEADERS)
+    metadata = {row["symbol"]: row for row in metadata_rows}
+    deals = _read_csv(directory / "history-deals.csv", {"ticket", "time", "time_msc", "type_name", "entry_name", "position_id", "volume", "price", "profit", "commission", "swap", "fee", "symbol"})
+    price_requests = _read_optional_csv(directory / "price-requests.csv", PRICE_HEADERS)
+    account_currency = next(iter({row["account_currency"] for row in metadata_rows if row.get("account_currency")}))
+    positions = _position_lifecycles(deals)
+    latest = max((_dt(row["time"]) for row in deals), default=datetime.now())
+    last_complete = today - timedelta(days=1) if today else latest.date()
+    first_day = last_complete - timedelta(days=119)
+    day_close_symbols = {row["symbol"] for row in price_requests if first_day.isoformat() <= row["requested_server_time"][:10] <= last_complete.isoformat()}
+    conversion = {row["profit_currency"]: row for row in _conversion_map(metadata_rows, account_currency)}
+    cashflow_prices, _ = _cashflow_requests(deals, positions, metadata, conversion, first_day, last_complete)
+    valuation_symbols = day_close_symbols | {row["source_symbol"] for row in cashflow_prices}
+    closed_deal_rows = defaultdict(list)
+    for row in deals:
+        if row.get("position_id") not in {"", "0"}:
+            closed_deal_rows[row["position_id"]].append(row)
+    samples = []
+    conversion_requests = []
+    for state in positions.values():
+        if state.entries != 1 or state.exits != 1 or not state.close_time or state.invalid or state.symbol not in valuation_symbols:
+            continue
+        if not first_day <= state.close_time.date() <= last_complete:
+            continue
+        row = metadata.get(state.symbol)
+        if not row:
+            continue
+        mode = int(row["trade_calc_mode"])
+        raw_profit = calculate_custom_profit(mode, state.direction, state.initial_volume, state.open_price, state.close_price, _number(row["trade_contract_size"]), _number(row["tick_size"]), _number(row["tick_value"]))
+        if raw_profit is None:
+            continue
+        exit_row = max((item for item in closed_deal_rows[state.position_id] if item.get("entry_name", "").endswith(("OUT", "OUT_BY"))), key=lambda item: (item.get("time_msc", ""), item.get("ticket", "")), default=None)
+        close_server_time = exit_row["time"] if exit_row else state.close_time.strftime("%Y.%m.%d %H:%M:%S")
+        sample_id = f"{state.position_id}-{close_server_time.replace('.', '').replace(':', '').replace(' ', '-') }"
+        samples.append({"sample_id": sample_id, "position_id": state.position_id, "symbol": state.symbol, "calc_mode": str(mode), "close_server_time": close_server_time, "direction": state.direction, "volume": f"{state.initial_volume:.12g}", "open_price": f"{state.open_price:.12g}", "close_price": f"{state.close_price:.12g}", "currency_profit": row["currency_profit"], "account_currency": account_currency, "raw_profit_currency": f"{raw_profit:.12g}", "realized_profit_account": f"{state.realized_profit:.12g}"})
+        if row["currency_profit"] != account_currency:
+            mapping = conversion.get(row["currency_profit"], {})
+            if mapping.get("status") == "AVAILABLE":
+                conversion_requests.append({"sample_id": sample_id, "conversion_symbol": mapping["conversion_symbol"], "requested_server_time": close_server_time, "direction": mapping["direction"], "source_symbol": state.symbol, "profit_currency": row["currency_profit"], "account_currency": account_currency})
+    _write_request_file(directory / "validation-profit-samples.csv", ("sample_id", "position_id", "symbol", "calc_mode", "close_server_time", "direction", "volume", "open_price", "close_price", "currency_profit", "account_currency", "raw_profit_currency", "realized_profit_account"), [tuple(row[key] for key in ("sample_id", "position_id", "symbol", "calc_mode", "close_server_time", "direction", "volume", "open_price", "close_price", "currency_profit", "account_currency", "raw_profit_currency", "realized_profit_account")) for row in samples])
+    _write_request_file(directory / "validation-conversion-price-requests.csv", ("sample_id", "conversion_symbol", "requested_server_time", "direction", "source_symbol", "profit_currency", "account_currency"), [tuple(row[key] for key in ("sample_id", "conversion_symbol", "requested_server_time", "direction", "source_symbol", "profit_currency", "account_currency")) for row in conversion_requests])
+    return {"samples": samples, "conversion_requests": conversion_requests, "day_close_symbols": sorted(day_close_symbols), "valuation_symbols": sorted(valuation_symbols)}
+
+
 def _cashflow_requests(deals: list[dict[str, str]], positions: dict[str, PositionState], metadata: dict[str, dict[str, str]], conversion: dict[str, dict[str, str]], first_day: date, last_day: date) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
     flows = [row for row in deals if row.get("type_name", "").endswith("BALANCE") and first_day <= _dt(row["time"]).date() <= last_day]
     price_rows = []
