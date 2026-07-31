@@ -113,3 +113,26 @@ def test_cashflow_requests_preserve_position_link_and_deduplicate(tmp_path):
     path = tmp_path / "cashflow-price-requests.csv"
     _write_request_file(path, ("flow_id", "source_symbol"), [(prices[0]["flow_id"], prices[0]["source_symbol"])])
     assert path.read_text().splitlines()[0] == "flow_id;source_symbol"
+
+
+def test_cashflow_after_full_close_excludes_position():
+    state = PositionState("42", symbol="EURUSD", direction="BUY", timeline=[
+        (datetime(2026, 7, 1, 10), 1.0, 1.0, 100.0),
+        (datetime(2026, 7, 1, 11), -1.0, 0.0, 0.0),
+    ])
+    deals = [{"ticket": "flow-1", "time": "2026.07.01 12:00:00", "type_name": "DEAL_TYPE_BALANCE", "profit": "10"}]
+    prices, conversions = _cashflow_requests(deals, {"42": state}, {"EURUSD": {"currency_profit": "USD"}}, {}, datetime(2026, 7, 1).date(), datetime(2026, 7, 1).date())
+    assert prices == []
+    assert conversions == []
+
+
+def test_cashflow_after_partial_close_uses_current_remaining_state():
+    state = PositionState("42", symbol="EURJPY", direction="BUY", timeline=[
+        (datetime(2026, 7, 1, 10), 1.0, 1.0, 100.0),
+        (datetime(2026, 7, 1, 11), -0.5, 0.5, 100.0),
+    ])
+    deals = [{"ticket": "flow-1", "time": "2026.07.01 12:00:00", "type_name": "DEAL_TYPE_BALANCE", "profit": "10"}]
+    prices, _ = _cashflow_requests(deals, {"42": state}, {"EURJPY": {"currency_profit": "JPY"}}, {}, datetime(2026, 7, 1).date(), datetime(2026, 7, 1).date())
+    assert len(prices) == 1
+    assert prices[0]["volume"] == "0.5"
+    assert prices[0]["weighted_open_price"] == "100"

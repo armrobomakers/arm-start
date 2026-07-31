@@ -126,8 +126,8 @@ def _cashflow_requests(deals: list[dict[str, str]], positions: dict[str, Positio
         flow_time = _dt(flow["time"])
         flow_id = flow.get("ticket", "")
         for position_id, state in positions.items():
-            before = [event for event in state.timeline if event[0] < flow_time and event[2] > 1e-9]
-            if not before:
+            before = [event for event in state.timeline if event[0] < flow_time]
+            if not before or before[-1][2] <= 1e-9:
                 continue
             timestamp, _, remaining, weighted_price = before[-1]
             row = {"flow_id": flow_id, "source_symbol": state.symbol, "requested_server_time": flow["time"], "position_id": position_id, "direction": state.direction, "volume": f"{remaining:.12g}", "weighted_open_price": f"{weighted_price:.12g}"}
@@ -223,7 +223,9 @@ def analyze_profit_model(directory: Path, *, today: date | None = None) -> dict[
             first_deal = details[0] if details else {}
             zero_anomalies.append({"position_id": state.position_id, "symbol": state.symbol, "open_time": state.open_time, "close_time": state.close_time, "direction": state.direction, "volume": state.initial_volume, "open_price": state.open_price, "close_price": state.close_price, "deal_reason": first_deal.get("reason_name", ""), "deal_entry": first_deal.get("entry_name", ""), "comment_category": _comment_category(first_deal.get("comment", "")), "actual_profit": _number(row["realized_profit"]), "calculated_profit": _number(row["calculated_profit"])})
     price_ok = sum(row.get("status") == "ok" for row in prices)
-    return {"account_currency": account_currency, "positions": recent_positions, "samples": recent_requests, "symbols": sorted({row["symbol"] for row in recent_requests}), "metadata": metadata_by_symbol, "metrics": metrics, "classifications": classifications, "conversion": conversion, "conversion_requests": conversion_requests, "cashflow_price_requests": cashflow_prices, "cashflow_conversion_requests": cashflow_conversions, "zero_anomalies": zero_anomalies, "price_coverage": (price_ok, len(requests)), "_balances": balances}
+    day_close_symbols = sorted({row["symbol"] for row in recent_requests})
+    cashflow_symbols = sorted({row["source_symbol"] for row in cashflow_prices})
+    return {"account_currency": account_currency, "positions": recent_positions, "samples": recent_requests, "symbols": day_close_symbols, "day_close_symbols": day_close_symbols, "cashflow_symbols": cashflow_symbols, "valuation_symbols": sorted(set(day_close_symbols) | set(cashflow_symbols)), "metadata": metadata_by_symbol, "metrics": metrics, "classifications": classifications, "conversion": conversion, "conversion_requests": conversion_requests, "cashflow_price_requests": cashflow_prices, "cashflow_conversion_requests": cashflow_conversions, "zero_anomalies": zero_anomalies, "price_coverage": (price_ok, len(requests)), "_balances": balances}
 
 
 def render_profit_model(result: dict[str, object]) -> str:
@@ -231,7 +233,7 @@ def render_profit_model(result: dict[str, object]) -> str:
     conversion = result["conversion"]
     inflows = [row for row in result["_balances"] if row["amount"] > 0] if "_balances" in result else []
     outflows = [row for row in result["_balances"] if row["amount"] < 0] if "_balances" in result else []
-    lines = [f"ACCOUNT CURRENCY: {result['account_currency']}", f"LAST 120 DAY POSITIONS: {len(result['positions'])}", f"LAST 120 DAY SAMPLES: {len(result['samples'])}", f"LAST 120 DAY SYMBOLS: {', '.join(result['symbols']) or '-'}"]
+    lines = [f"ACCOUNT CURRENCY: {result['account_currency']}", f"LAST 120 DAY POSITIONS: {len(result['positions'])}", f"LAST 120 DAY SAMPLES: {len(result['samples'])}", f"DAY-CLOSE SYMBOLS: {', '.join(result['day_close_symbols']) or '-'}", f"CASHFLOW SYMBOLS: {', '.join(result['cashflow_symbols']) or '-'}", f"LAST-120 VALUATION SYMBOLS: {', '.join(result['valuation_symbols']) or '-'}"]
     for symbol in sorted(result["metadata"]):
         row = result["metadata"][symbol]
         metric = result["metrics"].get(symbol, {})
