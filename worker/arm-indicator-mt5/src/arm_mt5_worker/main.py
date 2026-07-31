@@ -21,7 +21,7 @@ from .logging_setup import configure_logging, log
 from .mt5_adapter import MT5Adapter, MT5SecurityError
 from .native_export import NativeExportError, inspect_native_export
 from .native_analysis import analyze_native_history
-from .profit_model import analyze_profit_model, prepare_last120_validation, render_profit_model
+from .profit_model import analyze_profit_model, prepare_cashflow_valuation, prepare_last120_validation, render_profit_model
 from .validation import render_validation, validate_last120_profit
 from .outbox import queue_payload, replay_oldest, pending_payloads
 from .publisher import Publisher, canonical_payload, sign_payload
@@ -155,7 +155,7 @@ def command_analyze_native_history(path: str | None) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export", "analyze-native-history", "analyze-profit-model", "prepare-last120-validation", "validate-last120-profit"])
+    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export", "analyze-native-history", "analyze-profit-model", "prepare-last120-validation", "validate-last120-profit", "prepare-cashflow-valuation"])
     parser.add_argument("path", nargs="?")
     parser.add_argument("--env", dest="env_path")
     args = parser.parse_args(argv)
@@ -185,6 +185,19 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         except (NativeExportError, OSError, ValueError) as exc:
             print(f"ANALYSIS FAILED: {exc}")
+            return 30
+    if args.command == "prepare-cashflow-valuation":
+        try:
+            result = prepare_cashflow_valuation(Path(args.path or os.environ.get("ARM_NATIVE_EXPORT_DIR", "C:/ARM/indicator-mt5-worker/data/native-export")))
+            print(f"BALANCE FLOWS: {result['flows']}")
+            print(f"OPEN POSITION VALUATIONS: {len(result['prices'])}")
+            print(f"UNIQUE CASHFLOW PRICE POINTS: {len(result['unique_prices'])}")
+            print(f"CONVERSION REQUESTS: {len(result['conversions'])}")
+            print(f"UNIQUE CONVERSION PRICE POINTS: {len(result['unique_conversions'])}")
+            print("CASHFLOW FILES CREATED: YES")
+            return 0
+        except (NativeExportError, OSError, ValueError) as exc:
+            print(f"CASHFLOW PREPARATION FAILED: {exc}")
             return 30
     if args.command == "validate-last120-profit":
         try:

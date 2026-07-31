@@ -187,6 +187,26 @@ def _cashflow_requests(deals: list[dict[str, str]], positions: dict[str, Positio
     return price_rows, conversion_rows
 
 
+def prepare_cashflow_valuation(directory: Path, *, today: date | None = None) -> dict[str, object]:
+    metadata_rows = _read_optional_csv(directory / "symbol-metadata.csv", METADATA_HEADERS)
+    metadata = {row["symbol"]: row for row in metadata_rows}
+    deals = _read_csv(directory / "history-deals.csv", {"time", "time_msc", "type_name", "entry_name", "position_id", "volume", "price", "symbol", "ticket"})
+    account_currencies = {row["account_currency"] for row in metadata_rows if row.get("account_currency")}
+    if len(account_currencies) != 1:
+        raise NativeExportError("account currency is missing or inconsistent")
+    latest = max((_dt(row["time"]) for row in deals), default=datetime.now())
+    last_complete = today - timedelta(days=1) if today else latest.date()
+    first_day = last_complete - timedelta(days=119)
+    positions = _position_lifecycles(deals)
+    conversion = {row["profit_currency"]: row for row in _conversion_map(metadata_rows, account_currencies.pop())}
+    prices, conversions = _cashflow_requests(deals, positions, metadata, conversion, first_day, last_complete)
+    _write_request_file(directory / "cashflow-price-requests.csv", ("flow_id", "source_symbol", "requested_server_time", "position_id", "direction", "volume", "weighted_open_price"), [tuple(row[key] for key in ("flow_id", "source_symbol", "requested_server_time", "position_id", "direction", "volume", "weighted_open_price")) for row in prices])
+    _write_request_file(directory / "cashflow-conversion-price-requests.csv", ("flow_id", "conversion_symbol", "requested_server_time", "direction", "source_symbol", "profit_currency", "account_currency"), [tuple(row[key] for key in ("flow_id", "conversion_symbol", "requested_server_time", "direction", "source_symbol", "profit_currency", "account_currency")) for row in conversions])
+    unique_prices = {(row["source_symbol"], row["requested_server_time"]) for row in prices}
+    unique_conversions = {(row["conversion_symbol"], row["requested_server_time"]) for row in conversions}
+    return {"flows": sum(row.get("type_name", "").endswith("BALANCE") and first_day <= _dt(row["time"]).date() <= last_complete for row in deals), "prices": prices, "conversions": conversions, "unique_prices": unique_prices, "unique_conversions": unique_conversions}
+
+
 def analyze_profit_model(directory: Path, *, today: date | None = None) -> dict[str, object]:
     metadata_path = directory / "symbol-metadata.csv"
     metadata = _read_optional_csv(metadata_path, METADATA_HEADERS)

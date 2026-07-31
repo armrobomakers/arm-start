@@ -2,7 +2,7 @@ import csv
 from datetime import date
 
 from arm_mt5_worker.native_analysis import _position_lifecycles
-from arm_mt5_worker.profit_model import _cashflow_requests, _conversion_map, _write_request_file, analyze_profit_model, calculate_custom_profit, prepare_last120_validation
+from arm_mt5_worker.profit_model import _cashflow_requests, _conversion_map, _write_request_file, analyze_profit_model, calculate_custom_profit, prepare_cashflow_valuation, prepare_last120_validation
 from arm_mt5_worker.native_analysis import PositionState
 from datetime import datetime
 
@@ -149,3 +149,17 @@ def test_prepare_last120_validation_uses_exact_close_time_and_direct_samples(tmp
     assert result["conversion_requests"] == []
     assert (export / "validation-profit-samples.csv").read_text().splitlines()[0].startswith("sample_id;position_id")
     assert (export / "validation-conversion-price-requests.csv").read_text().splitlines()[0].startswith("sample_id;conversion_symbol")
+
+
+def test_prepare_cashflow_valuation_writes_only_cashflow_files_atomically(tmp_path):
+    export = tmp_path / "ARMIndicator"
+    _fixture(export)
+    result = prepare_cashflow_valuation(export, today=date(2026, 7, 10))
+    assert result["flows"] == 2
+    assert len(result["prices"]) == 0
+    assert len(result["conversions"]) == 0
+    assert (export / "cashflow-price-requests.csv").read_text().splitlines()[0] == "flow_id;source_symbol;requested_server_time;position_id;direction;volume;weighted_open_price"
+    assert (export / "cashflow-conversion-price-requests.csv").read_text().splitlines()[0] == "flow_id;conversion_symbol;requested_server_time;direction;source_symbol;profit_currency;account_currency"
+    assert not (export / "cashflow-price-requests.csv.tmp").exists()
+    assert (export / "price-requests.csv").exists()
+    assert (export / "historical-prices.csv").exists()

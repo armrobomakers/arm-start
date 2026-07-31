@@ -5,6 +5,7 @@ SOURCE = (Path(__file__).parents[1] / "mql5" / "ARMHistoryExporter.mq5").read_te
 CONVERSION_SOURCE = (Path(__file__).parents[1] / "mql5" / "ARMConversionPriceExporter.mq5").read_text(encoding="utf-8")
 METADATA_SOURCE = (Path(__file__).parents[1] / "mql5" / "ARMSymbolMetadataExporter.mq5").read_text(encoding="utf-8")
 VALIDATION_CONVERSION_SOURCE = (Path(__file__).parents[1] / "mql5" / "ARMValidationConversionPriceExporter.mq5").read_text(encoding="utf-8")
+CASHFLOW_SOURCE = (Path(__file__).parents[1] / "mql5" / "ARMCashflowPriceExporter.mq5").read_text(encoding="utf-8")
 
 
 def test_native_exporter_is_read_only():
@@ -65,3 +66,18 @@ def test_validation_conversion_exporter_is_isolated_and_read_only():
     assert "15*60,2*60*60,12*60*60,36*60*60,72*60*60,120*60*60,168*60*60" in VALIDATION_CONVERSION_SOURCE
     assert '"sample_id","conversion_symbol","requested_server_time"' in VALIDATION_CONVERSION_SOURCE
     assert 'FileMove(TMP,FILE_COMMON,OUT,FILE_COMMON|FILE_REWRITE)' in VALIDATION_CONVERSION_SOURCE
+
+
+def test_cashflow_exporter_is_read_only_and_has_independent_atomic_outputs():
+    compact_source = CASHFLOW_SOURCE.replace(" ", "").replace("\n", "")
+    for token in ("OrderSend", "OrderSendAsync", "CTrade", "trade.Buy", "trade.Sell", "PositionClose", "TRADE_ACTION_", "ORDER_TYPE_BUY", "ORDER_TYPE_SELL"):
+        assert token not in CASHFLOW_SOURCE
+    for token in ("TERMINAL_CONNECTED", "ACCOUNT_TRADE_ALLOWED", 'AccountInfoString(ACCOUNT_SERVER)!="Tickmill-Live"', "CopyTicksRange", "ticks[i].time_msc<=requested_msc", "15*60,2*60*60,12*60*60,36*60*60,72*60*60,120*60*60,168*60*60", 'FileMove(PRICE_TMP,FILE_COMMON,PRICE_OUT,FILE_COMMON|FILE_REWRITE)', 'FileMove(CONVERSION_TMP,FILE_COMMON,CONVERSION_OUT,FILE_COMMON|FILE_REWRITE)', 'FileWrite(output,"flow_id","position_id","source_symbol","requested_server_time","actual_tick_time","bid","ask","gap_seconds","source","status","direction","volume","weighted_open_price")', 'FileWrite(output,"flow_id","conversion_symbol","requested_server_time","actual_tick_time","bid","ask","gap_seconds","source","status","direction","source_symbol","profit_currency","account_currency")'):
+        assert token.replace(" ", "") in compact_source
+    assert 'FileOpen(PRICE_REQUESTS,FILE_READ|FILE_CSV|FILE_ANSI|FILE_COMMON,\';\')' in CASHFLOW_SOURCE
+    assert 'FileOpen(CONVERSION_REQUESTS,FILE_READ|FILE_CSV|FILE_ANSI|FILE_COMMON,\';\')' in CASHFLOW_SOURCE
+    assert '"m1_fallback","approximate"' in CASHFLOW_SOURCE
+    assert '"missing"' in CASHFLOW_SOURCE
+    assert '"ARMIndicator/historical-prices.csv"' not in CASHFLOW_SOURCE
+    assert '"ARMIndicator/validation-conversion-historical-prices.csv"' not in CASHFLOW_SOURCE
+    assert "validation-conversion" not in CASHFLOW_SOURCE
