@@ -39,6 +39,14 @@ def _dt(value: str) -> datetime:
     return datetime.strptime(value, "%Y.%m.%d %H:%M:%S")
 
 
+def _event_time(row: dict[str, str]) -> datetime:
+    value = _dt(row["time"])
+    raw_msc = row.get("time_msc", "")
+    if raw_msc.isdigit():
+        value += timedelta(milliseconds=int(raw_msc) % 1000)
+    return value
+
+
 def _number(value: str) -> float:
     return float(value or 0)
 
@@ -67,7 +75,7 @@ def _position_lifecycles(deals: list[dict[str, str]]) -> dict[str, PositionState
         net_volume = 0.0
         weighted_open_price = 0.0
         for row in sorted(rows, key=lambda item: (item.get("time_msc", ""), item.get("ticket", ""))):
-            event_time = _dt(row["time"])
+            event_time = _event_time(row)
             volume = _number(row["volume"])
             is_buy = row["type_name"].endswith("BUY")
             signed = volume if is_buy else -volume

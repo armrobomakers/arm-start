@@ -6,7 +6,7 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from .native_analysis import PositionState, _dt, _number, _position_lifecycles
+from .native_analysis import PositionState, _dt, _event_time, _number, _position_lifecycles
 from .native_export import NativeExportError, _read_csv
 
 
@@ -123,7 +123,7 @@ def _cashflow_requests(deals: list[dict[str, str]], positions: dict[str, Positio
     price_rows = []
     conversion_rows = []
     for flow in flows:
-        flow_time = _dt(flow["time"])
+        flow_time = _event_time(flow)
         flow_id = flow.get("ticket", "")
         for position_id, state in positions.items():
             before = [event for event in state.timeline if event[0] < flow_time]
