@@ -34,6 +34,7 @@ int OnStart()
       ulong requested_msc=(ulong)requested_time*1000;
       int selected=-1;
       MqlTick selected_tick;
+      ZeroMemory(selected_tick);
       for(int window=0;window<7 && selected<0;window++)
         {
          MqlTick ticks[];
