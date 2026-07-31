@@ -22,6 +22,7 @@ from .mt5_adapter import MT5Adapter, MT5SecurityError
 from .native_export import NativeExportError, inspect_native_export
 from .native_analysis import analyze_native_history
 from .profit_model import analyze_profit_model, prepare_last120_validation, render_profit_model
+from .validation import render_validation, validate_last120_profit
 from .outbox import queue_payload, replay_oldest, pending_payloads
 from .publisher import Publisher, canonical_payload, sign_payload
 from .seed import combine_seed_and_live, validate_seed
@@ -154,7 +155,7 @@ def command_analyze_native_history(path: str | None) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export", "analyze-native-history", "analyze-profit-model", "prepare-last120-validation"])
+    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export", "analyze-native-history", "analyze-profit-model", "prepare-last120-validation", "validate-last120-profit"])
     parser.add_argument("path", nargs="?")
     parser.add_argument("--env", dest="env_path")
     args = parser.parse_args(argv)
@@ -184,6 +185,13 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         except (NativeExportError, OSError, ValueError) as exc:
             print(f"ANALYSIS FAILED: {exc}")
+            return 30
+    if args.command == "validate-last120-profit":
+        try:
+            print(render_validation(validate_last120_profit(Path(args.path or os.environ.get("ARM_NATIVE_EXPORT_DIR", "C:/ARM/indicator-mt5-worker/data/native-export")))))
+            return 0
+        except (NativeExportError, OSError, ValueError) as exc:
+            print(f"VALIDATION FAILED: {exc}")
             return 30
     config = load_config(args.env_path, require_runtime=args.command not in {"doctor", "status"})
     if args.command == "doctor": return command_doctor(config)
