@@ -101,7 +101,7 @@ def _valid_price(row: dict[str, str], requested: datetime) -> bool:
 def _tick_row(adapter, symbol: str, requested: datetime) -> dict[str, str]:
     for lookback in WINDOWS:
         start = requested - lookback
-        ticks = adapter.ticks_get(symbol, start, requested + timedelta(seconds=1))
+        ticks = adapter.ticks_get(symbol, start.replace(tzinfo=timezone.utc), (requested + timedelta(seconds=1)).replace(tzinfo=timezone.utc))
         candidates = []
         for tick in ticks:
             time_msc = int(getattr(tick, "time_msc", int(getattr(tick, "time", 0)) * 1000))
