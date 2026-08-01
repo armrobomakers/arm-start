@@ -47,6 +47,7 @@ def _int(values: dict[str, str], key: str, default: int) -> int:
 @dataclass(frozen=True)
 class Config:
     mt5_terminal_path: Path
+    mt5_export_dir: Path
     expected_login: int
     expected_server: str
     expected_company: str | None
@@ -75,6 +76,9 @@ def load_config(env_path: str | Path | None = None, *, require_runtime: bool = T
     terminal = Path(_required(values, "MT5_TERMINAL_PATH"))
     if not terminal.is_absolute():
         raise ConfigError("MT5_TERMINAL_PATH must be absolute")
+    export_dir = Path(_required(values, "ARM_MT5_EXPORT_DIR"))
+    if not export_dir.is_absolute():
+        raise ConfigError("ARM_MT5_EXPORT_DIR must be absolute")
     try:
         login = int(_required(values, "MT5_EXPECTED_LOGIN"))
     except ValueError as exc:
@@ -93,6 +97,7 @@ def load_config(env_path: str | Path | None = None, *, require_runtime: bool = T
     policy = _value(values, "ARM_CASHFLOW_POLICY_PATH")
     return Config(
         mt5_terminal_path=terminal,
+        mt5_export_dir=export_dir,
         expected_login=login,
         expected_server=_required(values, "MT5_EXPECTED_SERVER"),
         expected_company=_value(values, "MT5_EXPECTED_COMPANY"),

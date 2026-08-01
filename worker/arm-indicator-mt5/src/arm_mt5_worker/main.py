@@ -25,6 +25,7 @@ from .profit_model import analyze_profit_model, prepare_cashflow_valuation, prep
 from .validation import render_validation, validate_last120_profit
 from .outbox import queue_payload, replay_oldest, pending_payloads
 from .publisher import Publisher, canonical_payload, sign_payload
+from .reconstruct import NativeExportError as ReconstructionError, export_report, reconstruct_last120
 from .seed import combine_seed_and_live, validate_seed
 
 
@@ -155,7 +156,7 @@ def command_analyze_native_history(path: str | None) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export", "analyze-native-history", "analyze-profit-model", "prepare-last120-validation", "validate-last120-profit", "prepare-cashflow-valuation"])
+    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export", "analyze-native-history", "analyze-profit-model", "prepare-last120-validation", "validate-last120-profit", "prepare-cashflow-valuation", "reconstruct-last120-dailygain"])
     parser.add_argument("path", nargs="?")
     parser.add_argument("--env", dest="env_path")
     args = parser.parse_args(argv)
@@ -205,6 +206,47 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         except (NativeExportError, OSError, ValueError) as exc:
             print(f"VALIDATION FAILED: {exc}")
+            return 30
+    if args.command == "reconstruct-last120-dailygain":
+        try:
+            config = load_config(args.env_path, require_runtime=False)
+            report = export_report(config.mt5_export_dir)
+            print(f"WORKER USER: {os.environ.get('USERNAME', '-')}")
+            print(f"MT5 EXPORT DIRECTORY: {config.mt5_export_dir}")
+            for item in report:
+                print(f"INPUT: {item['path']} size={item['size']} data_rows={item['rows']}")
+            result = reconstruct_last120(config.mt5_export_dir, config.seed_path)
+            coverage = result["coverage"]
+            print(f"DAY CLOSE PRICE MISSING: {coverage['day_missing']}")
+            print(f"DAY CLOSE CONVERSION MISSING: {coverage['conversion_missing']}")
+            print(f"CASHFLOW PRICE MISSING: {coverage['cash_missing']}")
+            print(f"CASHFLOW CONVERSION MISSING: {coverage['cash_conversion_missing']}")
+            print(f"FUTURE TICKS: {coverage['future']}")
+            print(f"M1 FALLBACKS: {coverage['m1']}")
+            daily = result["daily"]
+            equities = [row["equity_close"] for row in result["day_equity"]]
+            values = [row["value"] for row in daily]
+            complete_days = len(daily)
+            all_days = len({row["date"] for row in result["day_equity"]})
+            print(f"DAY CLOSES RECONSTRUCTED: {all_days}")
+            print(f"COMPLETE DAILY RETURNS: {complete_days}")
+            print(f"INCOMPLETE DAYS: {all_days - complete_days}")
+            print(f"BALANCE FLOWS: {len(result['flows'])}")
+            print(f"CASHFLOW INVARIANT MAX ERROR: {result['cashflow_invariant_max_error']:.12g}")
+            print(f"MIN EQUITY: {min(equities):.12g}")
+            print(f"MAX EQUITY: {max(equities):.12g}")
+            print(f"MIN DAILY GAIN: {min(values):.12g}")
+            print(f"MAX DAILY GAIN: {max(values):.12g}")
+            print(f"MEDIAN DAILY GAIN: {sorted(values)[len(values) // 2]:.12g}")
+            print(f"FIRST COMPLETE DATE: {daily[0]['date']}")
+            print(f"LAST COMPLETE DATE: {daily[-1]['date']}")
+            print(f"DAILYGAIN CREATED: YES ({config.seed_path})")
+            print(f"DAILYGAIN ROWS: {len(daily)}")
+            print("ARM SCORE CALCULATED ON VPS: NO")
+            print("READY FOR PREVIEW PUBLISH: YES")
+            return 0
+        except (ConfigError, ReconstructionError, OSError, ValueError) as exc:
+            print(f"DAILYGAIN RECONSTRUCTION FAILED: {exc}")
             return 30
     config = load_config(args.env_path, require_runtime=args.command not in {"doctor", "status"})
     if args.command == "doctor": return command_doctor(config)
