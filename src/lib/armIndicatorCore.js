@@ -53,6 +53,10 @@ export function scoreToAngle(score) {
   return (clamp(score, -100, 100) / 100) * 90;
 }
 
+export function scoreToNeedleTransform(score, centerX = 180, centerY = 166) {
+  return `rotate(${scoreToAngle(score)} ${centerX} ${centerY})`;
+}
+
 export function roundTo(value, digits = 1) {
   const factor = 10 ** digits;
   return Math.round((Number(value) + Number.EPSILON) * factor) / factor;

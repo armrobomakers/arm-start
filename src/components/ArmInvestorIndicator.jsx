@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { ARM_INDICATOR_TICKS, scoreToAngle } from "../lib/armIndicatorCore.js";
-import brandLogo from "../assets/brand/logo.svg";
+import { ARM_INDICATOR_TICKS, scoreToAngle, scoreToNeedleTransform } from "../lib/armIndicatorCore.js";
 
 const CURRENT_ENDPOINT = "/api/arm-indicator/current";
 const GAUGE_CENTER = { x: 180, y: 166 };
@@ -73,7 +72,6 @@ function useArmIndicatorData() {
 
 function Gauge({ snapshot }) {
   const score = Number(snapshot?.score) || 0;
-  const needleAngle = scoreToAngle(score);
   const zone = LEGEND.find((item) => item.zone === snapshot.zone) || LEGEND[2];
 
   return (
@@ -96,11 +94,11 @@ function Gauge({ snapshot }) {
             </g>
           );
         })}
-        <g className="arm-indicator-needle" transform={`rotate(${needleAngle} ${GAUGE_CENTER.x} ${GAUGE_CENTER.y})`}>
+        <circle cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="57" className="arm-indicator-center-ring" />
+        <g className="arm-indicator-needle" transform={scoreToNeedleTransform(score, GAUGE_CENTER.x, GAUGE_CENTER.y)}>
           <line x1={GAUGE_CENTER.x} y1={GAUGE_CENTER.y} x2={GAUGE_CENTER.x} y2={GAUGE_CENTER.y - NEEDLE_LENGTH} className="arm-indicator-needle-line" />
           <circle cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="10" className="arm-indicator-needle-hub" />
         </g>
-        <circle cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="57" className="arm-indicator-center-ring" />
         <text x={GAUGE_CENTER.x} y={GAUGE_CENTER.y - 4} className="arm-indicator-score">{score > 0 ? `+${score}` : score < 0 ? `−${Math.abs(score)}` : "0"}</text>
         <text x={GAUGE_CENTER.x} y={GAUGE_CENTER.y + 22} className="arm-indicator-score-caption">ОЦЕНКА ARM</text>
       </svg>
@@ -125,7 +123,6 @@ export function ArmInvestorIndicator() {
           <h2 id="arm-indicator-title">АРМ ИНДИКАТОР ИНВЕСТОРА</h2>
           <p>На основе реальных данных торговой системы ARM</p>
         </div>
-        <img className="arm-indicator-logo" src={brandLogo} alt="ARM AI Robo Makers" />
       </header>
 
       {state.status === "loading" ? <div className="arm-indicator-loading" role="status" aria-label="Загрузка индикатора" /> : null}

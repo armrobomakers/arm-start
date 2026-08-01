@@ -10,11 +10,16 @@ import {
   parseMyfxbookDate,
   trimDailyGainToLastCompletedDay,
   scoreToAngle,
+  scoreToNeedleTransform,
 } from "../src/lib/armIndicatorCore.js";
 import { ARM_INDICATOR_FIXTURE_METRICS } from "../src/lib/armIndicatorFixture.js";
 test("score-to-angle mapping keeps the gauge endpoints and center", () => {
   assert.deepEqual([-100, -60, -20, 0, 20, 60, 100].map(scoreToAngle), [-90, -54, -18, 0, 18, 54, 90]);
   assert.equal(scoreToAngle(-82), -73.8);
+});
+
+test("score -82 produces a visible SVG needle transform", () => {
+  assert.equal(scoreToNeedleTransform(-82), "rotate(-73.8 180 166)");
 });
 
 test("indicator UI keeps approved Russian labels and data states", () => {
@@ -24,6 +29,8 @@ test("indicator UI keeps approved Russian labels and data states", () => {
   assert.match(source, /Текущая зона/);
   assert.match(source, /Данные по состоянию на/);
   assert.match(source, /Данные временно не обновляются/);
+  assert.match(source, /scoreToNeedleTransform\(score, GAUGE_CENTER\.x, GAUGE_CENTER\.y\)/);
+  assert.doesNotMatch(source, /arm-indicator-logo|brandLogo/);
   assert.doesNotMatch(source, /Сильная покупка|Покупка|Risk Zone/);
 });
 
