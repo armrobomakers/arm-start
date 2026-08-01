@@ -46,7 +46,7 @@ def _normalize_incremental_deal(adapter, deal: object) -> dict[str, object]:
         "ticket": int(getattr(deal, "ticket", 0)),
         "order": int(getattr(deal, "order", 0)),
         "time": datetime.fromtimestamp(timestamp, timezone.utc).replace(tzinfo=None).strftime("%Y.%m.%d %H:%M:%S"),
-        "time_msc": time_msc,
+        "time_msc": str(time_msc),
         "type_name": f"DEAL_TYPE_{adapter.deal_type_name(type_value)}",
         "entry_name": f"DEAL_ENTRY_{adapter.deal_entry_name(entry_value)}",
         "position_id": int(getattr(deal, "position_id", 0) or 0),
