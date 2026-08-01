@@ -18,7 +18,7 @@ $localTime = [TimeZoneInfo]::ConvertTimeFromUtc($utcDateTime, [TimeZoneInfo]::Lo
 $action = New-ScheduledTaskAction -Execute $Python -Argument "-m arm_mt5_worker.main daily-sync --env `"$EnvPath`"" -WorkingDirectory (Join-Path $Root 'app')
 $trigger = New-ScheduledTaskTrigger -Daily -At ([DateTime]::Today.Add($localTime))
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 30) -RestartCount 0
-$principal = New-ScheduledTaskPrincipal -UserId 'trader' -LogonType InteractiveToken -RunLevel Limited
+$principal = New-ScheduledTaskPrincipal -UserId 'trader' -LogonType Interactive -RunLevel Limited
 
 Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description "ARM Indicator MT5 daily read-only sync ($windowsZone; 03:15 Europe/Moscow)" | Out-Null
 Disable-ScheduledTask -TaskName $TaskName | Out-Null
