@@ -24,7 +24,7 @@ export function DocPage({ slug }) {
   const isOverview = section.slug === "overview";
 
   return (
-    <main className="doc-page">
+    <main className={`doc-page${isOverview ? " doc-page-indicator" : ""}`}>
       <section className={isOverview ? "hero hero-overview" : "hero"}>
         <div>
           <p className="eyebrow">{section.eyebrow}</p>

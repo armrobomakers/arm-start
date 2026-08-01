@@ -31,6 +31,14 @@ export const ARM_INDICATOR_ZONE_META = {
   },
 };
 
+Object.assign(ARM_INDICATOR_ZONE_META, {
+  strong_buy: { ...ARM_INDICATOR_ZONE_META.strong_buy, label: "Сильная зона пополнения", recommendation: "Хорошая точка для увеличения капитала" },
+  buy: { ...ARM_INDICATOR_ZONE_META.buy, label: "Зона пополнения", recommendation: "Можно рассмотреть увеличение капитала" },
+  neutral: { ...ARM_INDICATOR_ZONE_META.neutral, label: "Нейтральная зона", recommendation: "Ждать / ничего не делать" },
+  profit: { ...ARM_INDICATOR_ZONE_META.profit, label: "Зона фиксации прибыли", recommendation: "Можно зафиксировать часть прибыли" },
+  strong_profit: { ...ARM_INDICATOR_ZONE_META.strong_profit, label: "Сильная зона фиксации прибыли", recommendation: "Хорошая точка для фиксации прибыли" },
+});
+
 export function clamp(value, min, max) {
   const number = Number(value);
 
@@ -39,6 +47,10 @@ export function clamp(value, min, max) {
   }
 
   return Math.min(max, Math.max(min, number));
+}
+
+export function scoreToAngle(score) {
+  return (clamp(score, -100, 100) / 100) * 90;
 }
 
 export function roundTo(value, digits = 1) {

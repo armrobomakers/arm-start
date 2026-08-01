@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   buildIndicatorSnapshot,
   calculateIndicatorScore,
@@ -8,8 +9,23 @@ import {
   normalizeDailyGainPayload,
   parseMyfxbookDate,
   trimDailyGainToLastCompletedDay,
+  scoreToAngle,
 } from "../src/lib/armIndicatorCore.js";
 import { ARM_INDICATOR_FIXTURE_METRICS } from "../src/lib/armIndicatorFixture.js";
+test("score-to-angle mapping keeps the gauge endpoints and center", () => {
+  assert.deepEqual([-100, -60, -20, 0, 20, 60, 100].map(scoreToAngle), [-90, -54, -18, 0, 18, 54, 90]);
+  assert.equal(scoreToAngle(-82), -73.8);
+});
+
+test("indicator UI keeps approved Russian labels and data states", () => {
+  const source = readFileSync(new URL("../src/components/ArmInvestorIndicator.jsx", import.meta.url), "utf8");
+  assert.match(source, /Сильная зона пополнения/);
+  assert.match(source, /Зона фиксации прибыли/);
+  assert.match(source, /Текущая зона/);
+  assert.match(source, /Данные по состоянию на/);
+  assert.match(source, /Данные временно не обновляются/);
+  assert.doesNotMatch(source, /Сильная покупка|Покупка|Risk Zone/);
+});
 
 test("fixture snapshot stays in strong buy zone and close to the expected score", () => {
   const snapshot = buildIndicatorSnapshot({
