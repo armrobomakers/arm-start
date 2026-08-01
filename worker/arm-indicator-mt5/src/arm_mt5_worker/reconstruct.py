@@ -153,7 +153,7 @@ def reconstruct_last120(directory: Path, output_path: Path) -> dict[str, object]
     cash_price_rows = _read_export_file(directory, "cashflow-historical-prices.csv", {"flow_id", "position_id", "source_symbol", "requested_server_time", "actual_tick_time", "bid", "ask", "source", "status"})
     cash_conversion_rows = _read_export_file(directory, "cashflow-conversion-historical-prices.csv", {"flow_id", "conversion_symbol", "requested_server_time", "actual_tick_time", "bid", "ask", "source", "status", "direction", "source_symbol", "profit_currency"})
     prices, day_missing, day_future, day_fallback = _validate_prices(price_rows, key=("symbol", "requested_server_time"))
-    conversion_index, conversion_missing, conversion_future, conversion_fallback = _validate_prices(conversion_rows, key=("conversion_symbol", "requested_server_time"))
+    conversion_index, conversion_missing, conversion_future, conversion_fallback = _validate_prices(conversion_rows, key=("source_symbol", "requested_server_time"))
     cash_prices, cash_missing, cash_future, cash_fallback = _validate_prices(cash_price_rows, key=("flow_id", "position_id"))
     cash_conversions, cash_conversion_missing, cash_conversion_future, cash_conversion_fallback = _validate_prices(cash_conversion_rows, key=("flow_id", "conversion_symbol", "source_symbol"))
     if any((day_missing, conversion_missing, cash_missing, cash_conversion_missing, day_future, conversion_future, cash_future, cash_conversion_future, day_fallback, conversion_fallback, cash_fallback, cash_conversion_fallback)):
