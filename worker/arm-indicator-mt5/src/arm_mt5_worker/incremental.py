@@ -98,16 +98,25 @@ def _valid_price(row: dict[str, str], requested: datetime) -> bool:
     return actual <= requested and _number(row.get("bid", "")) > 0 and _number(row.get("ask", "")) > 0
 
 
+def _tick_value(tick: object, name: str, default=0):
+    try:
+        return tick[name]
+    except (KeyError, IndexError, TypeError):
+        return getattr(tick, name, default)
+
+
 def _tick_row(adapter, symbol: str, requested: datetime) -> dict[str, str]:
     for lookback in WINDOWS:
         start = requested - lookback
         ticks = adapter.ticks_get(symbol, start.replace(tzinfo=timezone.utc), (requested + timedelta(seconds=1)).replace(tzinfo=timezone.utc))
         candidates = []
         for tick in ticks:
-            time_msc = int(getattr(tick, "time_msc", int(getattr(tick, "time", 0)) * 1000))
+            time_msc = int(_tick_value(tick, "time_msc", int(_tick_value(tick, "time", 0)) * 1000))
             requested_msc = int(requested.replace(tzinfo=timezone.utc).timestamp() * 1000)
-            if time_msc <= requested_msc and float(getattr(tick, "bid", 0) or 0) > 0 and float(getattr(tick, "ask", 0) or 0) > 0:
-                candidates.append((time_msc, float(tick.bid), float(tick.ask)))
+            bid = float(_tick_value(tick, "bid", 0) or 0)
+            ask = float(_tick_value(tick, "ask", 0) or 0)
+            if time_msc <= requested_msc and bid > 0 and ask > 0:
+                candidates.append((time_msc, bid, ask))
         if candidates:
             time_msc, bid, ask = max(candidates, key=lambda item: item[0])
             actual = datetime.fromtimestamp(time_msc / 1000, timezone.utc).replace(tzinfo=None)
