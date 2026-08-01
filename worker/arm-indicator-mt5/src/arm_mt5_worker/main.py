@@ -295,7 +295,7 @@ def main(argv: list[str] | None = None) -> int:
         except (ConfigError, ReconstructionError, OSError, ValueError) as exc:
             print(f"DAILYGAIN RECONSTRUCTION FAILED: {exc}")
             return 30
-    config = load_config(args.env_path, require_runtime=args.command not in {"doctor", "status"})
+    config = load_config(args.env_path, require_runtime=args.command not in {"doctor", "status", "incremental-refresh"})
     if args.command == "doctor": return command_doctor(config)
     if args.command == "status": return command_status(config)
     logger = configure_logging(config.db_path.parent.parent / "logs")
