@@ -30,8 +30,18 @@ test("indicator UI keeps approved Russian labels and data states", () => {
   assert.match(source, /Данные по состоянию на/);
   assert.match(source, /Данные временно не обновляются/);
   assert.match(source, /scoreToNeedleTransform\(score, GAUGE_CENTER\.x, GAUGE_CENTER\.y\)/);
-  assert.doesNotMatch(source, /arm-indicator-logo|brandLogo/);
+  assert.match(source, /arm-indicator-card/);
+  assert.match(source, /arm-indicator-main-grid/);
+  assert.match(source, /ТЕКУЩИЙ СИГНАЛ/);
+  assert.doesNotMatch(source, /arm-indicator-logo|brandLogo|arm-indicator-layout/);
   assert.doesNotMatch(source, /Сильная покупка|Покупка|Risk Zone/);
+});
+
+test("visual fixture intercepts the current endpoint with the approved snapshot", () => {
+  const fixture = readFileSync(new URL("../scripts/arm-indicator-visual-fixture.cjs", import.meta.url), "utf8");
+  assert.match(fixture, /\/api\/arm-indicator\/current/);
+  assert.match(fixture, /score: -82/);
+  assert.match(fixture, /dataAsOf: "2026-07-31"/);
 });
 
 test("fixture snapshot stays in strong buy zone and close to the expected score", () => {

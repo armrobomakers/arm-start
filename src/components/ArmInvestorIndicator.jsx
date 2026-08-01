@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
-import { ARM_INDICATOR_TICKS, scoreToAngle, scoreToNeedleTransform } from "../lib/armIndicatorCore.js";
+import { ARM_INDICATOR_TICKS, scoreToNeedleTransform } from "../lib/armIndicatorCore.js";
 
 const CURRENT_ENDPOINT = "/api/arm-indicator/current";
-const GAUGE_CENTER = { x: 180, y: 166 };
-const GAUGE_RADIUS = 126;
-const NEEDLE_LENGTH = 98;
+const GAUGE_CENTER = { x: 180, y: 146 };
+const GAUGE_RADIUS = 112;
+const NEEDLE_LENGTH = 101;
 const GAUGE_SEGMENTS = [
-  { from: -100, to: -60, color: "#225f35", zone: "strong_buy" },
-  { from: -60, to: -20, color: "#4caf50", zone: "buy" },
-  { from: -20, to: 20, color: "#a7b0bd", zone: "neutral" },
-  { from: 20, to: 60, color: "#e5a323", zone: "profit" },
-  { from: 60, to: 100, color: "#cc4b3e", zone: "strong_profit" },
+  { from: -99, to: -61, color: "#225f35", zone: "strong_buy" },
+  { from: -59, to: -21, color: "#4caf50", zone: "buy" },
+  { from: -19, to: 19, color: "#a7b0bd", zone: "neutral" },
+  { from: 21, to: 59, color: "#e5a323", zone: "profit" },
+  { from: 61, to: 99, color: "#cc4b3e", zone: "strong_profit" },
 ];
 
-const LEGEND = [
+export const ARM_INDICATOR_LEGEND = [
   { zone: "strong_buy", label: "Сильная зона пополнения", description: "Хорошая точка для увеличения капитала" },
   { zone: "buy", label: "Зона пополнения", description: "Можно рассмотреть увеличение капитала" },
   { zone: "neutral", label: "Нейтральная зона", description: "Ждать / ничего не делать" },
@@ -72,21 +72,21 @@ function useArmIndicatorData() {
 
 function Gauge({ snapshot }) {
   const score = Number(snapshot?.score) || 0;
-  const zone = LEGEND.find((item) => item.zone === snapshot.zone) || LEGEND[2];
+  const currentZone = ARM_INDICATOR_LEGEND.find((item) => item.zone === snapshot?.zone) || ARM_INDICATOR_LEGEND[2];
 
   return (
     <div className="arm-indicator-gauge-wrap">
-      <svg className="arm-indicator-gauge-svg" viewBox="0 0 360 245" role="img" aria-labelledby="arm-gauge-title arm-gauge-description">
+      <svg className="arm-indicator-gauge-svg" viewBox="0 0 360 224" role="img" aria-labelledby="arm-gauge-title arm-gauge-description">
         <title id="arm-gauge-title">Шкала оценки ARM</title>
         <desc id="arm-gauge-description">Значение {score} из диапазона от минус 100 до плюс 100</desc>
         <path className="arm-indicator-gauge-track" d={describeArc(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS, -90, 90)} />
         {GAUGE_SEGMENTS.map((segment) => (
-          <path className="arm-indicator-gauge-segment" d={describeArc(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS, scoreToAngle(segment.from), scoreToAngle(segment.to))} stroke={segment.color} key={segment.zone} />
+          <path className="arm-indicator-gauge-segment" d={describeArc(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS, segment.from * 0.9, segment.to * 0.9)} stroke={segment.color} key={segment.zone} />
         ))}
         {ARM_INDICATOR_TICKS.map((tick) => {
-          const angle = scoreToAngle(tick);
-          const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS + 17, angle);
-          const label = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS + 34, angle);
+          const angle = tick * 0.9;
+          const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS + 12, angle);
+          const label = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS + 26, angle);
           return (
             <g key={tick} className="arm-indicator-tick-group">
               <line x1={outer.x} y1={outer.y} x2={label.x} y2={label.y} className="arm-indicator-tick" />
@@ -94,17 +94,44 @@ function Gauge({ snapshot }) {
             </g>
           );
         })}
-        <circle cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="57" className="arm-indicator-center-ring" />
         <g className="arm-indicator-needle" transform={scoreToNeedleTransform(score, GAUGE_CENTER.x, GAUGE_CENTER.y)}>
           <line x1={GAUGE_CENTER.x} y1={GAUGE_CENTER.y} x2={GAUGE_CENTER.x} y2={GAUGE_CENTER.y - NEEDLE_LENGTH} className="arm-indicator-needle-line" />
-          <circle cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="10" className="arm-indicator-needle-hub" />
         </g>
-        <text x={GAUGE_CENTER.x} y={GAUGE_CENTER.y - 4} className="arm-indicator-score">{score > 0 ? `+${score}` : score < 0 ? `−${Math.abs(score)}` : "0"}</text>
-        <text x={GAUGE_CENTER.x} y={GAUGE_CENTER.y + 22} className="arm-indicator-score-caption">ОЦЕНКА ARM</text>
+        <text x={GAUGE_CENTER.x} y={GAUGE_CENTER.y - 2} className="arm-indicator-score">{score > 0 ? `+${score}` : score < 0 ? `−${Math.abs(score)}` : "0"}</text>
+        <text x={GAUGE_CENTER.x} y={GAUGE_CENTER.y + 23} className="arm-indicator-score-caption">ОЦЕНКА ARM</text>
+        <circle cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="8" className="arm-indicator-needle-hub" />
       </svg>
-      <div className="arm-indicator-status" aria-live="polite">
-        <strong>{zone.label}</strong>
-        <span>{zone.description}</span>
+      <span className="sr-only">Текущая зона: {currentZone.label}</span>
+    </div>
+  );
+}
+
+function CurrentSignal({ snapshot }) {
+  const currentZone = ARM_INDICATOR_LEGEND.find((item) => item.zone === snapshot?.zone) || ARM_INDICATOR_LEGEND[2];
+  const score = Number(snapshot?.score) || 0;
+
+  return (
+    <div className="arm-indicator-signal">
+      <p className="arm-indicator-section-label">ТЕКУЩИЙ СИГНАЛ</p>
+      <h2 className="arm-indicator-signal-title">{currentZone.label}</h2>
+      <p className="arm-indicator-recommendation">{currentZone.description}</p>
+      <div className="arm-indicator-signal-badge" aria-label={`Оценка ${score}, ${currentZone.label}`}>
+        <strong>{score > 0 ? `+${score}` : score < 0 ? `−${Math.abs(score)}` : "0"}</strong>
+        <span>{currentZone.label}</span>
+      </div>
+      <div className="arm-indicator-legend" aria-label="Как читать шкалу">
+        <p className="arm-indicator-section-label">КАК ЧИТАТЬ ШКАЛУ</p>
+        {ARM_INDICATOR_LEGEND.map((item, index) => {
+          const segment = GAUGE_SEGMENTS[index];
+          const isActive = snapshot?.zone === item.zone;
+          return (
+            <div className={`arm-indicator-legend-row${isActive ? " is-active" : ""}`} key={item.zone}>
+              <span className="arm-indicator-legend-dot" style={{ backgroundColor: segment.color }} />
+              <div><strong>{item.label}</strong><span>{item.description}</span></div>
+              {isActive ? <em>Текущая</em> : null}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -113,53 +140,24 @@ function Gauge({ snapshot }) {
 export function ArmInvestorIndicator() {
   const state = useArmIndicatorData();
   const snapshot = state.current;
-  const currentZone = snapshot ? LEGEND.find((item) => item.zone === snapshot.zone) || LEGEND[2] : null;
 
   return (
-    <section className="arm-indicator card" id="arm-investor-indicator" aria-labelledby="arm-indicator-title">
-      <header className="arm-indicator-header">
-        <div>
-          <p className="arm-indicator-kicker">ARM INVESTOR</p>
-          <h2 id="arm-indicator-title">АРМ ИНДИКАТОР ИНВЕСТОРА</h2>
-          <p>На основе реальных данных торговой системы ARM</p>
-        </div>
-      </header>
-
+    <section className="arm-indicator-card" id="arm-investor-indicator" aria-labelledby="arm-indicator-title">
       {state.status === "loading" ? <div className="arm-indicator-loading" role="status" aria-label="Загрузка индикатора" /> : null}
       {state.status === "unavailable" ? <div className="arm-indicator-empty" role="status"><strong>Данные индикатора пока недоступны</strong><span>{state.error}</span></div> : null}
       {state.status === "error" ? <div className="arm-indicator-error" role="alert">{state.error}</div> : null}
-
       {snapshot ? (
-        <div className="arm-indicator-layout">
-          <div>
-            <Gauge snapshot={snapshot} />
-            <div className="arm-indicator-result" aria-label={`Зона: ${currentZone.label}`}>
-              <strong>{currentZone.label}</strong>
-              <span>{currentZone.description}</span>
-            </div>
+        <>
+          <div className="arm-indicator-main-grid">
+            <div className="arm-indicator-gauge-column"><Gauge snapshot={snapshot} /></div>
+            <CurrentSignal snapshot={snapshot} />
           </div>
-          <aside className="arm-indicator-legend" aria-label="Как читать шкалу">
-            <h3>КАК ЧИТАТЬ ШКАЛУ</h3>
-            {LEGEND.map((item) => {
-              const segment = GAUGE_SEGMENTS.find((candidate) => candidate.zone === item.zone);
-              const isActive = snapshot.zone === item.zone;
-              return (
-                <div className={`arm-indicator-legend-row${isActive ? " is-active" : ""}`} key={item.zone}>
-                  <span className="arm-indicator-legend-dot" style={{ backgroundColor: segment.color }} />
-                  <div><strong>{item.label}{isActive ? <em>Текущая зона</em> : null}</strong><span>{item.description}</span></div>
-                </div>
-              );
-            })}
-          </aside>
-        </div>
-      ) : null}
-
-      {snapshot ? (
-        <footer className="arm-indicator-footer">
-          <span>Данные по состоянию на: {formatDate(snapshot.dataAsOf)}</span>
-          {snapshot.stale ? <small className="arm-indicator-stale">Данные временно не обновляются</small> : null}
-          <p>Индикатор является информационным ориентиром на основе статистики торговой системы ARM и не гарантирует будущую доходность.</p>
-        </footer>
+          <footer className="arm-indicator-footer">
+            <span>Данные по состоянию на: {formatDate(snapshot.dataAsOf)}</span>
+            {snapshot.stale ? <small className="arm-indicator-stale">Данные временно не обновляются</small> : null}
+            <p>Индикатор является информационным ориентиром на основе статистики торговой системы ARM и не гарантирует будущую доходность.</p>
+          </footer>
+        </>
       ) : null}
     </section>
   );

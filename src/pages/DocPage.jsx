@@ -11,48 +11,37 @@ import {
   StepList,
 } from "../components/DocComponents";
 import { ArmInvestorIndicator } from "../components/ArmInvestorIndicator";
-import { guideMeta, sectionsBySlug } from "../content";
-import brandLogo from "../assets/brand/logo.svg";
+import { sectionsBySlug } from "../content";
 
 export function DocPage({ slug }) {
   const section = sectionsBySlug[slug] || sectionsBySlug.overview;
+  const isOverview = section.slug === "overview";
 
   useEffect(() => {
     document.title = `${section.title} — ARM Start`;
   }, [section.title]);
 
-  const isOverview = section.slug === "overview";
-
   return (
     <main className={`doc-page${isOverview ? " doc-page-indicator" : ""}`}>
-      <section className={isOverview ? "hero hero-overview" : "hero"}>
-        <div>
+      {isOverview ? (
+        <header className="arm-indicator-page-header">
+          <p className="arm-indicator-page-eyebrow">ARM INVESTOR</p>
+          <h1 id="arm-indicator-title">АРМ ИНДИКАТОР ИНВЕСТОРА</h1>
+          <p>На основе реальных данных торговой системы ARM</p>
+        </header>
+      ) : (
+        <section className="hero">
           <p className="eyebrow">{section.eyebrow}</p>
           <h1>{section.title}</h1>
           <p>{section.lead}</p>
-          {isOverview ? <img className="hero-logo" src={brandLogo} alt="ARM AI Robo Makers" /> : null}
-          {isOverview ? (
-            <div className="hero-actions">
-              <a className="primary-action" href={guideMeta.tickmillLink} target="_blank" rel="noreferrer">
-                Ссылка Tickmill
-              </a>
-              <span className="soft-pill">IB: {guideMeta.ibCode}</span>
-            </div>
-          ) : null}
-        </div>
-      </section>
+        </section>
+      )}
 
       {isOverview ? <ArmInvestorIndicator /> : null}
       <StageProgress currentSlug={section.slug} />
-
       {isOverview ? <Prerequisites /> : null}
-
       <CardGrid cards={section.cards} />
-
-      {section.callouts?.map((callout) => (
-        <Callout key={callout.title} callout={callout} />
-      ))}
-
+      {section.callouts?.map((callout) => <Callout key={callout.title} callout={callout} />)}
       <StepList steps={section.steps} />
       <CopyBlock block={section.copyBlock} />
       <Checklist items={section.checklist} />
