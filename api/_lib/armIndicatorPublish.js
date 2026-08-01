@@ -73,8 +73,8 @@ function parseDateOnly(value) {
 }
 
 export function validatePublishPayload(payload, {
-  systemId = process.env.MYFXBOOK_SYSTEM_ID || DEFAULT_SYSTEM_ID,
-  accountName = process.env.MYFXBOOK_EXPECTED_ACCOUNT_NAME || DEFAULT_ACCOUNT_NAME,
+  systemId = process.env.ARM_INDICATOR_SYSTEM_ID || DEFAULT_SYSTEM_ID,
+  accountName = process.env.ARM_INDICATOR_ACCOUNT_NAME || DEFAULT_ACCOUNT_NAME,
 } = {}) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     throw new ArmIndicatorPublishError("Payload must be a JSON object");
@@ -153,7 +153,7 @@ export async function publishIndicatorPayload(payload, { referenceDate = new Dat
   const snapshot = buildIndicatorSnapshot({
     dataAsOf,
     updatedAt: new Date().toISOString(),
-    source: "myfxbook-vps",
+    source: "mt5-vps",
     stale: false,
     metrics,
   });
@@ -162,9 +162,9 @@ export async function publishIndicatorPayload(payload, { referenceDate = new Dat
     current: normalizeSnapshotForTransport(snapshot),
     history: upsertHistory(state?.history, snapshot),
     updatedAt: snapshot.updatedAt,
-    source: "myfxbook-vps",
+    source: "mt5-vps",
     diagnostics: {
-      source: "windows-vps",
+      source: "windows-mt5-vps",
       fetchedAt: validated.fetchedAt,
       points: validated.dailyGain.length,
       dataAsOf,
@@ -172,7 +172,7 @@ export async function publishIndicatorPayload(payload, { referenceDate = new Dat
   };
 
   await writeIndicatorState(nextState);
-  return { snapshot: nextState.current, dataAsOf, points: validated.dailyGain.length };
+  return { snapshot: nextState.current, state: nextState, dataAsOf, points: validated.dailyGain.length };
 }
 
 export function applyDynamicStale(snapshot, { referenceDate = new Date(), maxAgeDays = 4 } = {}) {
