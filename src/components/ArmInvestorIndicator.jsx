@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ARM_INDICATOR_TICKS, ARM_INDICATOR_ZONE_META, scoreToAngle } from "../lib/armIndicatorCore.js";
+import { ARM_INDICATOR_TICKS, scoreToAngle } from "../lib/armIndicatorCore.js";
 import brandLogo from "../assets/brand/logo.svg";
 
 const CURRENT_ENDPOINT = "/api/arm-indicator/current";
@@ -74,6 +74,7 @@ function useArmIndicatorData() {
 function Gauge({ snapshot }) {
   const score = Number(snapshot?.score) || 0;
   const needleAngle = scoreToAngle(score);
+  const zone = LEGEND.find((item) => item.zone === snapshot.zone) || LEGEND[2];
 
   return (
     <div className="arm-indicator-gauge-wrap">
@@ -104,8 +105,8 @@ function Gauge({ snapshot }) {
         <text x={GAUGE_CENTER.x} y={GAUGE_CENTER.y + 22} className="arm-indicator-score-caption">ОЦЕНКА ARM</text>
       </svg>
       <div className="arm-indicator-status" aria-live="polite">
-        <strong>{snapshot.zoneLabel || ARM_INDICATOR_ZONE_META.neutral.label}</strong>
-        <span>{snapshot.recommendation || ARM_INDICATOR_ZONE_META.neutral.recommendation}</span>
+        <strong>{zone.label}</strong>
+        <span>{zone.description}</span>
       </div>
     </div>
   );
@@ -114,6 +115,7 @@ function Gauge({ snapshot }) {
 export function ArmInvestorIndicator() {
   const state = useArmIndicatorData();
   const snapshot = state.current;
+  const currentZone = snapshot ? LEGEND.find((item) => item.zone === snapshot.zone) || LEGEND[2] : null;
 
   return (
     <section className="arm-indicator card" id="arm-investor-indicator" aria-labelledby="arm-indicator-title">
@@ -134,9 +136,9 @@ export function ArmInvestorIndicator() {
         <div className="arm-indicator-layout">
           <div>
             <Gauge snapshot={snapshot} />
-            <div className="arm-indicator-result" aria-label={`Зона: ${snapshot.zoneLabel}`}>
-              <strong>{snapshot.zoneLabel}</strong>
-              <span>{snapshot.recommendation}</span>
+            <div className="arm-indicator-result" aria-label={`Зона: ${currentZone.label}`}>
+              <strong>{currentZone.label}</strong>
+              <span>{currentZone.description}</span>
             </div>
           </div>
           <aside className="arm-indicator-legend" aria-label="Как читать шкалу">
