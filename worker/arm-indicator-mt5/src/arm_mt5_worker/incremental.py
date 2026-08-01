@@ -83,7 +83,12 @@ def _requested(day: date) -> datetime:
 
 
 def _parse_requested(value: str) -> datetime:
-    return datetime.strptime(value[:19], "%Y-%m-%d %H:%M:%S")
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y.%m.%d %H:%M:%S"):
+        try:
+            return datetime.strptime(value[:19], fmt)
+        except ValueError:
+            pass
+    raise NativeExportError(f"invalid timestamp: {value}")
 
 
 def _valid_price(row: dict[str, str], requested: datetime) -> bool:
