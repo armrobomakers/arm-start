@@ -42,5 +42,6 @@ class Publisher:
         raise RuntimeError(f"publish failed after 3 attempts: {last_error}") from last_error
 
 
-def canonical_payload(system_id: str, account_name: str, daily_gain: list[dict]) -> dict:
-    return {"version": 1, "systemId": str(system_id), "accountName": account_name, "fetchedAt": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(), "dailyGain": sorted(daily_gain, key=lambda item: item["date"])}
+def canonical_payload(system_id: str, account_name: str, daily_gain: list[dict], fetched_at: str | None = None) -> dict:
+    fetched_at = fetched_at or __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()
+    return {"version": 1, "systemId": str(system_id), "accountName": account_name, "fetchedAt": fetched_at, "dailyGain": sorted(daily_gain, key=lambda item: item["date"])}

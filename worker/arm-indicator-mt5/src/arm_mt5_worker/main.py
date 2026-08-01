@@ -14,6 +14,7 @@ from .collector import collect_snapshot, sync_deals
 from .config import Config, ConfigError, load_config
 from .database import Database
 from .daily_returns import calculate_daily_returns
+from .daily_sync import DailySyncError, run_daily_sync
 from .deals import load_policy
 from .doctor import doctor
 from .incremental import incremental_refresh
@@ -200,9 +201,24 @@ def command_incremental_refresh(config: Config) -> int:
     return 0
 
 
+def command_daily_sync(config: Config) -> int:
+    result = run_daily_sync(config)
+    print(f"DAILY SYNC RESULT: {result['result']}")
+    print(f"DAILYGAIN ROWS: {result['points']}")
+    print(f"DATA AS OF: {result['data_as_of']}")
+    print(f"PAYLOAD CHANGED: {'YES' if result['result'] == 'PUBLISHED' else 'NO'}")
+    print(f"PUBLISH REQUESTS SENT: {result['publish_requests']}")
+    print(f"GET VERIFICATION: {result.get('verification', 'SKIPPED')}")
+    if result.get("score") is not None:
+        print(f"SCORE: {result['score']}")
+    if result.get("zone") is not None:
+        print(f"ZONE: {result['zone']}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export", "analyze-native-history", "analyze-profit-model", "prepare-last120-validation", "validate-last120-profit", "prepare-cashflow-valuation", "reconstruct-last120-dailygain", "incremental-refresh"])
+    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export", "analyze-native-history", "analyze-profit-model", "prepare-last120-validation", "validate-last120-profit", "prepare-cashflow-valuation", "reconstruct-last120-dailygain", "incremental-refresh", "daily-sync"])
     parser.add_argument("path", nargs="?")
     parser.add_argument("--env", dest="env_path")
     parser.add_argument("--no-publish", action="store_true")
@@ -295,7 +311,7 @@ def main(argv: list[str] | None = None) -> int:
         except (ConfigError, ReconstructionError, OSError, ValueError) as exc:
             print(f"DAILYGAIN RECONSTRUCTION FAILED: {exc}")
             return 30
-    config = load_config(args.env_path, require_runtime=args.command not in {"doctor", "status", "incremental-refresh"})
+    config = load_config(args.env_path, require_runtime=args.command not in {"doctor", "status", "incremental-refresh", "daily-sync"})
     if args.command == "doctor": return command_doctor(config)
     if args.command == "status": return command_status(config)
     logger = configure_logging(config.db_path.parent.parent / "logs")
@@ -310,6 +326,12 @@ def main(argv: list[str] | None = None) -> int:
                     return command_incremental_refresh(config)
                 except (ConfigError, MT5SecurityError, NativeExportError, OSError, ValueError) as exc:
                     print(f"INCREMENTAL REFRESH FAILED: {exc}")
+                    return 30
+            if args.command == "daily-sync":
+                try:
+                    return command_daily_sync(config)
+                except (ConfigError, DailySyncError, MT5SecurityError, NativeExportError, OSError, ValueError) as exc:
+                    print(f"DAILY SYNC FAILED: {exc}")
                     return 30
             if args.command == "dry-run":
                 summary = run_cycle(config, False, logger)
