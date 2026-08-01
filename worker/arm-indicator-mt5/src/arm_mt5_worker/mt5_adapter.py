@@ -80,6 +80,23 @@ class MT5Adapter:
             raise RuntimeError(f"history_deals_get failed: {self._module().last_error()}")
         return tuple(result)
 
+    def history_orders_get(self, start: datetime, end: datetime) -> tuple[Any, ...]:
+        result = self._module().history_orders_get(start, end)
+        if result is None:
+            raise RuntimeError(f"history_orders_get failed: {self._module().last_error()}")
+        return tuple(result)
+
+    def ticks_get(self, symbol: str, start: datetime, end: datetime) -> tuple[Any, ...]:
+        mt5 = self._module()
+        copy_ticks_range = getattr(mt5, "copy_ticks_range", None)
+        copy_ticks_all = getattr(mt5, "COPY_TICKS_ALL", 0)
+        if copy_ticks_range is None:
+            raise RuntimeError("copy_ticks_range is unavailable")
+        result = copy_ticks_range(symbol, start, end, copy_ticks_all)
+        if result is None:
+            raise RuntimeError(f"copy_ticks_range failed for {symbol}: {mt5.last_error()}")
+        return tuple(result)
+
     def deal_type_name(self, value: int) -> str:
         mt5 = self._module()
         names = {getattr(mt5, name): name.removeprefix("DEAL_TYPE_") for name in dir(mt5) if name.startswith("DEAL_TYPE_")}

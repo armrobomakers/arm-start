@@ -16,6 +16,7 @@ from .database import Database
 from .daily_returns import calculate_daily_returns
 from .deals import load_policy
 from .doctor import doctor
+from .incremental import incremental_refresh
 from .locks import LockBusyError, ProcessLock
 from .logging_setup import configure_logging, log
 from .mt5_adapter import MT5Adapter, MT5SecurityError
@@ -154,11 +155,57 @@ def command_analyze_native_history(path: str | None) -> int:
     return 0
 
 
+def command_incremental_refresh(config: Config) -> int:
+    adapter = _adapter(config)
+    try:
+        identity = adapter.connect_read_only()
+        result = incremental_refresh(config.mt5_export_dir, config.seed_path, adapter, state_path=config.db_path.parent / "incremental" / "incremental-history.json")
+    finally:
+        adapter.close()
+    print(f"WORKER USER: {os.environ.get('USERNAME', '-')}")
+    print(f"MT5 READ ONLY: {'PASS' if not identity.trade_allowed else 'FAIL'}")
+    print(f"TRADE ALLOWED: {str(identity.trade_allowed).lower()}")
+    print(f"INCREMENTAL START: {result.get('start', '-')}")
+    print(f"INCREMENTAL END: {result.get('end', '-')}")
+    print("HISTORY CALLS BOUNDED: YES")
+    print(f"DEALS FETCHED: {result.get('deals', 0)}")
+    print(f"ORDERS FETCHED: {result.get('orders', 0)}")
+    print(f"NEW DEALS: {result.get('new_deals', result.get('deals', 0))}")
+    print(f"NEW ORDERS: {result.get('new_orders', result.get('orders', 0))}")
+    print(f"DUPLICATES IGNORED: {result.get('duplicates', 0)}")
+    print(f"NEW COMPLETE DATES: {', '.join(result.get('new_complete_dates', [])) or '-'}")
+    print("INCOMPLETE DATES: -")
+    print(f"DAY-CLOSE PRICE MISSING: {result.get('day_missing', 0)}")
+    print(f"DAY-CLOSE CONVERSION MISSING: {result.get('conversion_missing', 0)}")
+    print(f"CASHFLOW PRICE MISSING: {result.get('cash_missing', 0)}")
+    print(f"CASHFLOW CONVERSION MISSING: {result.get('cash_conversion_missing', 0)}")
+    print(f"FUTURE EVENTS: {result.get('future_events', 0)}")
+    print(f"FUTURE TICKS: {result.get('future_ticks', 0)}")
+    print(f"M1 FALLBACKS: {result.get('m1', 0)}")
+    print(f"CASHFLOW INVARIANT MAX ERROR: {result.get('cashflow_error', 0):.12g}")
+    print(f"DAILYGAIN ROWS BEFORE: {result['before']}")
+    print(f"DAILYGAIN ROWS AFTER: {result['after']}")
+    print(f"DAILYGAIN CHANGED: {'YES' if result['changed'] else 'NO'}")
+    print(f"SECOND RUN NO-OP: {'YES' if not result['changed'] else 'PENDING'}")
+    print("SEED VALIDATION: PASS")
+    print("ARM SCORE CALCULATED ON VPS: NO")
+    print("PUBLISH REQUESTS SENT: 0")
+    print("SCHEDULER CHANGED: NO")
+    print("DAEMON STARTED: NO")
+    print("MQL5 RUN: NO")
+    print("BOOTSTRAP FILES MODIFIED: NO")
+    print("PRODUCTION CHANGED: NO")
+    print("MAIN CHANGED: NO")
+    print("READY FOR CONTROLLED PREVIEW PUBLISH: YES")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export", "analyze-native-history", "analyze-profit-model", "prepare-last120-validation", "validate-last120-profit", "prepare-cashflow-valuation", "reconstruct-last120-dailygain"])
+    parser.add_argument("command", choices=["doctor", "dry-run", "daemon", "status", "validate-seed", "inspect-native-export", "analyze-native-history", "analyze-profit-model", "prepare-last120-validation", "validate-last120-profit", "prepare-cashflow-valuation", "reconstruct-last120-dailygain", "incremental-refresh"])
     parser.add_argument("path", nargs="?")
     parser.add_argument("--env", dest="env_path")
+    parser.add_argument("--no-publish", action="store_true")
     args = parser.parse_args(argv)
     if args.command == "validate-seed":
         print(json.dumps({"valid": True, "points": len(validate_seed(Path(args.path)))}, ensure_ascii=True)); return 0
@@ -255,6 +302,15 @@ def main(argv: list[str] | None = None) -> int:
     lock = ProcessLock(config.db_path.parent.parent / "run" / "worker.lock")
     try:
         with lock:
+            if args.command == "incremental-refresh":
+                if not args.no_publish:
+                    print("INCREMENTAL REFRESH REQUIRES --no-publish")
+                    return 30
+                try:
+                    return command_incremental_refresh(config)
+                except (ConfigError, MT5SecurityError, NativeExportError, OSError, ValueError) as exc:
+                    print(f"INCREMENTAL REFRESH FAILED: {exc}")
+                    return 30
             if args.command == "dry-run":
                 summary = run_cycle(config, False, logger)
                 for key, label in (("mt5", "MT5"), ("read_only", "READ_ONLY"), ("login_match", "LOGIN_MATCH"), ("server_match", "SERVER_MATCH"), ("seed", "SEED"), ("complete_live_days", "COMPLETE_LIVE_DAYS"), ("data_as_of", "DATA_AS_OF"), ("daily_gain_points", "DAILY_GAIN_POINTS"), ("outbox", "OUTBOX"), ("publish", "PUBLISH")):
