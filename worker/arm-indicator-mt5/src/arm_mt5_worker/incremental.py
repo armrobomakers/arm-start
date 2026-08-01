@@ -251,7 +251,7 @@ def incremental_refresh(directory: Path, seed_path: Path, adapter, *, now: datet
                 denominator = post
         if min(denominator, day_equity[day]) <= 0:
             raise NativeExportError("non-positive equity")
-        returns.append({"date": day.isoformat(), "value": (math.prod(segments + [day_equity[day] / denominator]) - 1) * 100})
+        returns.append({"date": day.isoformat(), "value": round((math.prod(segments + [day_equity[day] / denominator]) - 1) * 100, 8)})
     if any(not math.isfinite(row["value"]) for row in returns):
         raise NativeExportError("incremental dailyGain contains non-finite values")
     existing = {row["date"]: row for row in seed}
