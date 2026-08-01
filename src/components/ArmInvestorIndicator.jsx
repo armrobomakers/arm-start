@@ -97,9 +97,9 @@ function Gauge({ snapshot }) {
         <g className="arm-indicator-needle" transform={scoreToNeedleTransform(score, GAUGE_CENTER.x, GAUGE_CENTER.y)}>
           <line x1={GAUGE_CENTER.x} y1={GAUGE_CENTER.y} x2={GAUGE_CENTER.x} y2={GAUGE_CENTER.y - NEEDLE_LENGTH} className="arm-indicator-needle-line" />
         </g>
-        <text x={GAUGE_CENTER.x} y={GAUGE_CENTER.y - 2} className="arm-indicator-score">{score > 0 ? `+${score}` : score < 0 ? `−${Math.abs(score)}` : "0"}</text>
-        <text x={GAUGE_CENTER.x} y={GAUGE_CENTER.y + 23} className="arm-indicator-score-caption">ОЦЕНКА ARM</text>
         <circle cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="8" className="arm-indicator-needle-hub" />
+        <text x={GAUGE_CENTER.x} y={GAUGE_CENTER.y + 41} className="arm-indicator-score">{score > 0 ? `+${score}` : score < 0 ? `−${Math.abs(score)}` : "0"}</text>
+        <text x={GAUGE_CENTER.x} y={GAUGE_CENTER.y + 59} className="arm-indicator-score-caption">ОЦЕНКА ARM</text>
       </svg>
       <span className="sr-only">Текущая зона: {currentZone.label}</span>
     </div>
@@ -115,10 +115,6 @@ function CurrentSignal({ snapshot }) {
       <p className="arm-indicator-section-label">ТЕКУЩИЙ СИГНАЛ</p>
       <h2 className="arm-indicator-signal-title">{currentZone.label}</h2>
       <p className="arm-indicator-recommendation">{currentZone.description}</p>
-      <div className="arm-indicator-signal-badge" aria-label={`Оценка ${score}, ${currentZone.label}`}>
-        <strong>{score > 0 ? `+${score}` : score < 0 ? `−${Math.abs(score)}` : "0"}</strong>
-        <span>{currentZone.label}</span>
-      </div>
       <div className="arm-indicator-legend" aria-label="Как читать шкалу">
         <p className="arm-indicator-section-label">КАК ЧИТАТЬ ШКАЛУ</p>
         {ARM_INDICATOR_LEGEND.map((item, index) => {

@@ -20,6 +20,7 @@ test("score-to-angle mapping keeps the gauge endpoints and center", () => {
 
 test("score -82 produces a visible SVG needle transform", () => {
   assert.equal(scoreToNeedleTransform(-82), "rotate(-73.8 180 166)");
+  assert.equal(scoreToNeedleTransform(-82, 180, 146), "rotate(-73.8 180 146)");
 });
 
 test("indicator UI keeps approved Russian labels and data states", () => {
@@ -33,8 +34,19 @@ test("indicator UI keeps approved Russian labels and data states", () => {
   assert.match(source, /arm-indicator-card/);
   assert.match(source, /arm-indicator-main-grid/);
   assert.match(source, /ТЕКУЩИЙ СИГНАЛ/);
+  assert.match(source, /NEEDLE_LENGTH = 101/);
+  assert.ok(source.indexOf('className="arm-indicator-needle"') < source.indexOf('className="arm-indicator-needle-hub"'));
+  assert.ok(source.indexOf('className="arm-indicator-needle-hub"') < source.indexOf('className="arm-indicator-score"'));
+  assert.doesNotMatch(source, /arm-indicator-signal-badge/);
   assert.doesNotMatch(source, /arm-indicator-logo|brandLogo|arm-indicator-layout/);
   assert.doesNotMatch(source, /Сильная покупка|Покупка|Risk Zone/);
+});
+
+test("indicator card stays content-sized and keeps the compact visual hierarchy", () => {
+  const css = readFileSync(new URL("../src/styles/armIndicator.css", import.meta.url), "utf8");
+  assert.match(css, /\.arm-indicator-score\s*\{[^}]*font-size:\s*64px/s);
+  assert.match(css, /\.arm-indicator-signal-title\s*\{[^}]*font-size:\s*clamp\(28px, 3vw, 34px\)/s);
+  assert.doesNotMatch(css, /\.arm-indicator-card\s*\{[^}]*min-height/s);
 });
 
 test("visual fixture intercepts the current endpoint with the approved snapshot", () => {
