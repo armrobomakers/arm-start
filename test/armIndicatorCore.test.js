@@ -10,7 +10,7 @@ import {
   parseMyfxbookDate,
   trimDailyGainToLastCompletedDay,
   scoreToAngle,
-  scoreToNeedleTransform,
+  calculatePointerEndpoint,
 } from "../src/lib/armIndicatorCore.js";
 import { ARM_INDICATOR_FIXTURE_METRICS } from "../src/lib/armIndicatorFixture.js";
 test("score-to-angle mapping keeps the gauge endpoints and center", () => {
@@ -18,9 +18,10 @@ test("score-to-angle mapping keeps the gauge endpoints and center", () => {
   assert.equal(scoreToAngle(-82), -73.8);
 });
 
-test("score -82 produces a visible SVG needle transform", () => {
-  assert.equal(scoreToNeedleTransform(-82), "rotate(-73.8 180 166)");
-  assert.equal(scoreToNeedleTransform(-82, 180, 132), "rotate(-73.8 180 132)");
+test("score -82 produces direct pointer coordinates", () => {
+  const pointer = calculatePointerEndpoint(-82);
+  assert.ok(Math.abs(pointer.x - 87.8) < 0.1);
+  assert.ok(Math.abs(pointer.y - 105.2) < 0.1);
 });
 
 test("indicator UI keeps approved Russian labels and data states", () => {
@@ -30,17 +31,19 @@ test("indicator UI keeps approved Russian labels and data states", () => {
   assert.match(source, /Текущая зона/);
   assert.match(source, /Данные по состоянию на/);
   assert.match(source, /Данные временно не обновляются/);
-  assert.match(source, /scoreToNeedleTransform\(score, GAUGE_CENTER\.x, GAUGE_CENTER\.y\)/);
   assert.match(source, /arm-indicator-card/);
   assert.match(source, /arm-indicator-main-grid/);
   assert.match(source, /ТЕКУЩИЙ СИГНАЛ/);
   assert.match(source, /NEEDLE_LENGTH = 96/);
-  assert.match(source, /arm-indicator-needle-line/);
-  assert.match(source, /arm-indicator-needle-tip/);
+  assert.match(source, /className="arm-gauge-pointer"/);
+  assert.match(source, /className="arm-gauge-pointer-tip"/);
   assert.match(source, /arm-score-block/);
   assert.match(source, /arm-score-value/);
   assert.match(source, /arm-score-label/);
-  assert.ok(source.indexOf('className="arm-indicator-needle"') < source.indexOf('className="arm-indicator-needle-hub"'));
+  assert.ok(source.indexOf('className="arm-gauge-pointer"') < source.indexOf('className="arm-indicator-needle-hub"'));
+  assert.ok(source.indexOf('className="arm-gauge-pointer-tip"') < source.indexOf('className="arm-indicator-needle-hub"'));
+  assert.doesNotMatch(source, /className="arm-gauge-pointer"[^>]*transform|markerEnd|clipPath|mask=/s);
+  assert.match(source, /viewBox="0 0 360 160"/);
   assert.ok(source.indexOf("</svg>") < source.indexOf('className="arm-score-block"'));
   assert.doesNotMatch(source, /className="arm-indicator-score|score-caption/);
   assert.doesNotMatch(source, /arm-indicator-signal-badge/);
@@ -56,6 +59,13 @@ test("indicator card stays content-sized and keeps the compact visual hierarchy"
   assert.match(css, /\.arm-indicator-legend-row strong[^}]*font-size:\s*14px/s);
   assert.match(css, /\.arm-indicator-legend-row span[^}]*font-size:\s*12px/s);
   assert.doesNotMatch(css, /\.arm-indicator-card\s*\{[^}]*min-height/s);
+  assert.doesNotMatch(css, /\.arm-gauge-pointer[^}]*transform|transform-origin|filter/s);
+});
+
+test("page content reserves real header space on initial render", () => {
+  const css = readFileSync(new URL("../src/styles/armIndicator.css", import.meta.url), "utf8");
+  assert.match(css, /\.doc-page-indicator\s*\{[^}]*padding-top:\s*calc\(var\(--arm-global-header-height\) \+ 12px\)/s);
+  assert.match(css, /--arm-global-header-height:\s*68px/);
 });
 
 test("visual fixture intercepts the current endpoint with the approved snapshot", () => {

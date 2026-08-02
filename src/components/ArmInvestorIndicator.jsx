@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ARM_INDICATOR_TICKS, scoreToNeedleTransform } from "../lib/armIndicatorCore.js";
+import { ARM_INDICATOR_TICKS, calculatePointerEndpoint } from "../lib/armIndicatorCore.js";
 
 const CURRENT_ENDPOINT = "/api/arm-indicator/current";
 const GAUGE_CENTER = { x: 180, y: 132 };
@@ -73,10 +73,11 @@ function useArmIndicatorData() {
 function Gauge({ snapshot }) {
   const score = Number(snapshot?.score) || 0;
   const currentZone = ARM_INDICATOR_LEGEND.find((item) => item.zone === snapshot?.zone) || ARM_INDICATOR_LEGEND[2];
+  const pointer = calculatePointerEndpoint(score, GAUGE_CENTER.x, GAUGE_CENTER.y, NEEDLE_LENGTH);
 
   return (
     <div className="arm-indicator-gauge-wrap">
-      <svg className="arm-indicator-gauge-svg" viewBox="0 0 360 220" role="img" aria-label={`Шкала оценки ARM, значение ${score}`}>
+      <svg className="arm-indicator-gauge-svg" viewBox="0 0 360 160" role="img" aria-label={`Шкала оценки ARM, значение ${score}`}>
         <path className="arm-indicator-gauge-track" d={describeArc(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS, -90, 90)} />
         {GAUGE_SEGMENTS.map((segment) => (
           <path className="arm-indicator-gauge-segment" d={describeArc(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS, segment.from * 0.9, segment.to * 0.9)} stroke={segment.color} key={segment.zone} />
@@ -92,11 +93,9 @@ function Gauge({ snapshot }) {
             </g>
           );
         })}
-        <g className="arm-indicator-needle" transform={scoreToNeedleTransform(score, GAUGE_CENTER.x, GAUGE_CENTER.y)}>
-          <line x1={GAUGE_CENTER.x} y1={GAUGE_CENTER.y} x2={GAUGE_CENTER.x} y2={GAUGE_CENTER.y - NEEDLE_LENGTH} className="arm-indicator-needle-line" />
-          <polygon points={`${GAUGE_CENTER.x - 5},${GAUGE_CENTER.y - NEEDLE_LENGTH + 11} ${GAUGE_CENTER.x},${GAUGE_CENTER.y - NEEDLE_LENGTH} ${GAUGE_CENTER.x + 5},${GAUGE_CENTER.y - NEEDLE_LENGTH + 11}`} className="arm-indicator-needle-tip" />
-        </g>
-        <circle cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="8" className="arm-indicator-needle-hub" />
+        <line className="arm-gauge-pointer" x1={GAUGE_CENTER.x} y1={GAUGE_CENTER.y} x2={pointer.x} y2={pointer.y} />
+        <circle className="arm-gauge-pointer-tip" cx={pointer.x} cy={pointer.y} r="4.5" />
+        <circle className="arm-indicator-needle-hub" cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="8" />
       </svg>
       <div className="arm-score-block" aria-label={`Оценка ARM: ${score}`}>
         <div className="arm-score-value">{score > 0 ? `+${score}` : score < 0 ? `−${Math.abs(score)}` : "0"}</div>

@@ -53,8 +53,12 @@ export function scoreToAngle(score) {
   return (clamp(score, -100, 100) / 100) * 90;
 }
 
-export function scoreToNeedleTransform(score, centerX = 180, centerY = 166) {
-  return `rotate(${scoreToAngle(score)} ${centerX} ${centerY})`;
+export function calculatePointerEndpoint(score, centerX = 180, centerY = 132, length = 96) {
+  const radians = (scoreToAngle(score) * Math.PI) / 180;
+  return {
+    x: centerX + Math.sin(radians) * length,
+    y: centerY - Math.cos(radians) * length,
+  };
 }
 
 export function roundTo(value, digits = 1) {
