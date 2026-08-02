@@ -20,7 +20,7 @@ test("score-to-angle mapping keeps the gauge endpoints and center", () => {
 
 test("score -82 produces a visible SVG needle transform", () => {
   assert.equal(scoreToNeedleTransform(-82), "rotate(-73.8 180 166)");
-  assert.equal(scoreToNeedleTransform(-82, 180, 146), "rotate(-73.8 180 146)");
+  assert.equal(scoreToNeedleTransform(-82, 180, 132), "rotate(-73.8 180 132)");
 });
 
 test("indicator UI keeps approved Russian labels and data states", () => {
@@ -34,9 +34,15 @@ test("indicator UI keeps approved Russian labels and data states", () => {
   assert.match(source, /arm-indicator-card/);
   assert.match(source, /arm-indicator-main-grid/);
   assert.match(source, /ТЕКУЩИЙ СИГНАЛ/);
-  assert.match(source, /NEEDLE_LENGTH = 101/);
+  assert.match(source, /NEEDLE_LENGTH = 96/);
+  assert.match(source, /arm-indicator-needle-line/);
+  assert.match(source, /arm-indicator-needle-tip/);
+  assert.match(source, /arm-score-block/);
+  assert.match(source, /arm-score-value/);
+  assert.match(source, /arm-score-label/);
   assert.ok(source.indexOf('className="arm-indicator-needle"') < source.indexOf('className="arm-indicator-needle-hub"'));
-  assert.ok(source.indexOf('className="arm-indicator-needle-hub"') < source.indexOf('className="arm-indicator-score"'));
+  assert.ok(source.indexOf("</svg>") < source.indexOf('className="arm-score-block"'));
+  assert.doesNotMatch(source, /className="arm-indicator-score|score-caption/);
   assert.doesNotMatch(source, /arm-indicator-signal-badge/);
   assert.doesNotMatch(source, /arm-indicator-logo|brandLogo|arm-indicator-layout/);
   assert.doesNotMatch(source, /Сильная покупка|Покупка|Risk Zone/);
@@ -44,8 +50,11 @@ test("indicator UI keeps approved Russian labels and data states", () => {
 
 test("indicator card stays content-sized and keeps the compact visual hierarchy", () => {
   const css = readFileSync(new URL("../src/styles/armIndicator.css", import.meta.url), "utf8");
-  assert.match(css, /\.arm-indicator-score\s*\{[^}]*font-size:\s*64px/s);
+  assert.match(css, /\.arm-score-value\s*\{[^}]*font-size:\s*60px/s);
+  assert.match(css, /\.arm-indicator-gauge-wrap\s*\{[^}]*420px/s);
   assert.match(css, /\.arm-indicator-signal-title\s*\{[^}]*font-size:\s*clamp\(28px, 3vw, 34px\)/s);
+  assert.match(css, /\.arm-indicator-legend-row strong[^}]*font-size:\s*14px/s);
+  assert.match(css, /\.arm-indicator-legend-row span[^}]*font-size:\s*12px/s);
   assert.doesNotMatch(css, /\.arm-indicator-card\s*\{[^}]*min-height/s);
 });
 

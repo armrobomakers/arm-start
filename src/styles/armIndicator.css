@@ -8,7 +8,7 @@
 
 .arm-indicator-page-header {
   max-width: 760px;
-  margin: 0 auto 18px;
+  margin: 0 auto 16px;
   text-align: center;
 }
 .arm-indicator-page-eyebrow,
@@ -24,7 +24,7 @@
   margin: 7px 0 8px;
   color: var(--text);
   font-family: var(--font-brand);
-  font-size: clamp(38px, 4vw, 46px);
+  font-size: clamp(34px, 3vw, 44px);
   font-weight: 300;
   letter-spacing: -.045em;
   line-height: 1;
@@ -40,22 +40,22 @@
   width: 100%;
   max-width: 1180px;
   margin: 0 auto;
-  padding: clamp(22px, 2.6vw, 30px);
+  padding: clamp(24px, 2.2vw, 28px);
   overflow: hidden;
-  border: 1px solid rgba(114, 188, 234, .32);
-  border-radius: 26px;
+  border: 1px solid rgba(68, 111, 176, .28);
+  border-radius: 22px;
   background: linear-gradient(145deg, #fff 0%, #fbfdff 68%, #f4f9fc 100%);
-  box-shadow: 0 12px 32px rgba(28, 58, 92, .07);
+  box-shadow: 0 8px 20px rgba(28, 58, 92, .05);
 }
 
 .arm-indicator-main-grid {
   display: grid;
-  grid-template-columns: minmax(0, 58fr) minmax(0, 42fr);
-  gap: clamp(28px, 3.4vw, 40px);
+  grid-template-columns: minmax(400px, .9fr) minmax(420px, 1.1fr);
+  gap: clamp(24px, 2.4vw, 32px);
   align-items: center;
 }
 .arm-indicator-gauge-column { min-width: 0; }
-.arm-indicator-gauge-wrap { width: min(100%, 540px); margin: 0 auto; }
+.arm-indicator-gauge-wrap { width: min(100%, 420px); margin: 0 auto; text-align: center; }
 .arm-indicator-gauge-svg {
   display: block;
   width: 100%;
@@ -85,28 +85,31 @@
 }
 .arm-indicator-needle-line {
   stroke: #142944;
-  stroke-width: 3.5;
+  stroke-width: 6;
   stroke-linecap: round;
 }
+.arm-indicator-needle-tip { fill: #142944; }
 .arm-indicator-needle-hub {
   fill: #142944;
   stroke: #fff;
   stroke-width: 2.5;
 }
-.arm-indicator-score {
-  fill: var(--text);
+.arm-score-block { margin-top: 6px; text-align: center; }
+.arm-score-value {
+  color: var(--text);
   font-family: var(--font-brand);
-  font-size: 64px;
+  font-size: 60px;
   font-weight: 400;
   letter-spacing: -.045em;
-  text-anchor: middle;
+  line-height: .92;
 }
-.arm-indicator-score-caption {
-  fill: var(--steel-blue);
+.arm-score-label {
+  margin-top: 6px;
+  color: var(--steel-blue);
   font-size: 13px;
   font-weight: 800;
   letter-spacing: .12em;
-  text-anchor: middle;
+  line-height: 1;
 }
 
 .arm-indicator-signal { min-width: 0; }
@@ -127,15 +130,15 @@
   font-size: 16px;
   line-height: 1.45;
 }
-.arm-indicator-legend { display: grid; gap: 3px; margin-top: 18px; }
+.arm-indicator-legend { display: grid; gap: 3px; margin-top: 14px; }
 .arm-indicator-legend > .arm-indicator-section-label { margin-bottom: 4px; }
 .arm-indicator-legend-row {
   display: grid;
   grid-template-columns: 10px minmax(0, 1fr) auto;
   gap: 9px;
   align-items: center;
-  min-height: 49px;
-  padding: 7px 9px;
+  min-height: 47px;
+  padding: 9px;
   border: 1px solid transparent;
   border-radius: 11px;
 }
@@ -145,8 +148,8 @@
 }
 .arm-indicator-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
 .arm-indicator-legend-row div { display: grid; gap: 2px; min-width: 0; }
-.arm-indicator-legend-row strong { color: var(--text); font-size: 13px; line-height: 1.2; }
-.arm-indicator-legend-row span { color: var(--muted); font-size: 11px; line-height: 1.25; }
+.arm-indicator-legend-row strong { color: var(--text); font-size: 14px; line-height: 1.2; }
+.arm-indicator-legend-row span { color: var(--muted); font-size: 12px; line-height: 1.25; }
 .arm-indicator-legend-row em {
   padding: 4px 6px;
   border-radius: 999px;
@@ -191,7 +194,7 @@
 @media (max-width: 1040px) {
   .arm-indicator-main-grid { grid-template-columns: 1fr; gap: 22px; }
   .arm-indicator-signal { order: -1; }
-  .arm-indicator-gauge-wrap { width: min(100%, 540px); }
+  .arm-indicator-gauge-wrap { width: min(100%, 420px); }
 }
 
 @media (max-width: 640px) {
@@ -205,7 +208,7 @@
   .arm-indicator-signal-title { margin-top: 8px; font-size: clamp(24px, 7vw, 28px); }
   .arm-indicator-recommendation { font-size: 15px; }
   .arm-indicator-legend { margin-top: 18px; }
-  .arm-indicator-score { font-size: 58px; }
+  .arm-score-value { font-size: 56px; }
   .arm-indicator-footer { display: grid; gap: 8px; margin-top: 18px; }
   .arm-indicator-footer p { max-width: none; text-align: left; }
 }
