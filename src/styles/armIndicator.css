@@ -7,7 +7,7 @@
 }
 
 .arm-indicator-page-header {
-  max-width: 760px;
+  max-width: 980px;
   margin: 0 auto 12px;
   text-align: center;
 }
@@ -17,7 +17,7 @@
   color: var(--steel-blue);
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: .14em;
+  letter-spacing: .12em;
   line-height: 1.2;
 }
 .arm-indicator-page-header h1 {
@@ -26,7 +26,7 @@
   font-family: var(--font-brand);
   font-size: clamp(32px, 2.8vw, 40px);
   font-weight: 300;
-  letter-spacing: -.045em;
+  letter-spacing: -.035em;
   line-height: 1;
   white-space: nowrap;
 }
@@ -34,6 +34,7 @@
   margin: 0;
   color: var(--muted);
   font-size: 15px;
+  line-height: 1.35;
 }
 
 .arm-indicator-card {
@@ -42,10 +43,13 @@
   margin: 0 auto;
   padding: clamp(18px, 1.7vw, 22px);
   overflow: hidden;
-  border: 1px solid rgba(68, 111, 176, .28);
+  border: 1px solid rgba(68, 111, 176, .32);
   border-radius: 22px;
-  background: linear-gradient(145deg, #fff 0%, #fbfdff 68%, #f4f9fc 100%);
-  box-shadow: 0 8px 20px rgba(28, 58, 92, .05);
+  background:
+    radial-gradient(circle at 13% 14%, rgba(114, 188, 234, .055), transparent 28%),
+    radial-gradient(circle at 91% 12%, rgba(76, 175, 80, .035), transparent 24%),
+    linear-gradient(145deg, #fff 0%, #fbfdff 68%, #f4f9fc 100%);
+  box-shadow: 0 12px 28px rgba(28, 58, 92, .07);
 }
 
 .arm-indicator-main-grid {
@@ -68,11 +72,11 @@
   stroke-width: 17;
   stroke-linecap: butt;
 }
-.arm-indicator-gauge-track { stroke: #e9eef4; }
-.arm-indicator-tick { stroke: #8795a7; stroke-width: 1.4; }
+.arm-indicator-gauge-track { stroke: #e6edf5; }
+.arm-indicator-tick { stroke: #8291a4; stroke-width: 1.4; }
 .arm-indicator-tick-label {
-  fill: var(--muted);
-  font-size: 10px;
+  fill: #53657d;
+  font-size: 10.5px;
   font-weight: 800;
   text-anchor: middle;
   dominant-baseline: middle;
@@ -99,7 +103,7 @@
   font-family: var(--font-brand);
   font-size: 60px;
   font-weight: 400;
-  letter-spacing: -.045em;
+  letter-spacing: -.04em;
   line-height: .92;
 }
 .arm-score-label {
@@ -107,18 +111,18 @@
   color: var(--steel-blue);
   font-size: 13px;
   font-weight: 800;
-  letter-spacing: .12em;
+  letter-spacing: .1em;
   line-height: 1;
 }
 
 .arm-indicator-signal { min-width: 0; }
 .arm-indicator-signal-title {
   max-width: 390px;
-  margin: 10px 0 9px;
+  margin: 8px 0 7px;
   color: var(--text);
   font-family: "Segoe UI", system-ui, sans-serif;
   font-size: clamp(28px, 3vw, 34px);
-  font-weight: 500;
+  font-weight: 550;
   letter-spacing: -.02em;
   line-height: 1.08;
 }
@@ -127,34 +131,35 @@
   margin: 0;
   color: var(--muted);
   font-size: 16px;
-  line-height: 1.45;
+  line-height: 1.4;
 }
-.arm-indicator-legend { display: grid; gap: 3px; margin-top: 14px; }
+.arm-indicator-legend { display: grid; gap: 3px; margin-top: 12px; }
 .arm-indicator-legend > .arm-indicator-section-label { margin-bottom: 4px; }
 .arm-indicator-legend-row {
   display: grid;
   grid-template-columns: 10px minmax(0, 1fr) auto;
   gap: 9px;
   align-items: center;
-  min-height: 47px;
-  padding: 9px;
+  min-height: 45px;
+  padding: 8px 9px;
   border: 1px solid transparent;
   border-radius: 11px;
 }
 .arm-indicator-legend-row.is-active {
-  border-color: rgba(114, 188, 234, .42);
-  background: rgba(114, 188, 234, .1);
+  border-color: rgba(68, 111, 176, .28);
+  background: linear-gradient(90deg, rgba(114, 188, 234, .14), rgba(114, 188, 234, .07));
+  box-shadow: inset 3px 0 0 rgba(68, 111, 176, .72);
 }
 .arm-indicator-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
 .arm-indicator-legend-row div { display: grid; gap: 2px; min-width: 0; }
 .arm-indicator-legend-row strong { color: var(--text); font-size: 14px; line-height: 1.2; }
 .arm-indicator-legend-row span { color: var(--muted); font-size: 12px; line-height: 1.25; }
 .arm-indicator-legend-row em {
-  padding: 4px 6px;
+  padding: 4px 7px;
   border-radius: 999px;
-  background: rgba(68, 111, 176, .12);
-  color: var(--steel-blue);
-  font-size: 9px;
+  background: rgba(68, 111, 176, .14);
+  color: #355f9f;
+  font-size: 10px;
   font-style: normal;
   font-weight: 800;
   white-space: nowrap;
@@ -168,11 +173,12 @@
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--line);
-  color: var(--muted);
+  color: #53657d;
   font-size: 12px;
 }
+.arm-indicator-footer > span { font-weight: 600; white-space: nowrap; }
 .arm-indicator-footer small { color: #9a5c12; font-size: 12px; font-weight: 700; }
-.arm-indicator-footer p { max-width: 390px; margin: 0; color: #8793a2; font-size: 11px; line-height: 1.4; text-align: right; }
+.arm-indicator-footer p { max-width: 410px; margin: 0; color: #738197; font-size: 11.5px; line-height: 1.35; text-align: right; }
 
 .arm-indicator-loading {
   min-height: 410px;
@@ -191,7 +197,7 @@
 @keyframes arm-indicator-skeleton { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 
 @media (max-width: 1040px) {
-  .arm-indicator-main-grid { grid-template-columns: 1fr; gap: 22px; }
+  .arm-indicator-main-grid { grid-template-columns: 1fr; gap: 20px; }
   .arm-indicator-signal { order: -1; }
   .arm-indicator-gauge-wrap { width: min(100%, 420px); }
 }
@@ -199,16 +205,17 @@
 @media (max-width: 640px) {
   :root { --arm-global-header-height: 60px; }
   .doc-page-indicator { width: min(100% - 20px, 100%); padding-top: 14px; }
-  .arm-indicator-page-header { margin-bottom: 12px; }
+  .arm-indicator-page-header { margin-bottom: 10px; }
   .arm-indicator-page-header h1 { font-size: clamp(30px, 8vw, 34px); white-space: normal; }
   .arm-indicator-page-header > p:last-child { font-size: 13px; }
   .arm-indicator-card { padding: 18px; border-radius: 22px; }
   .arm-indicator-main-grid { gap: 17px; }
   .arm-indicator-signal-title { margin-top: 8px; font-size: clamp(24px, 7vw, 28px); }
   .arm-indicator-recommendation { font-size: 15px; }
-  .arm-indicator-legend { margin-top: 18px; }
+  .arm-indicator-legend { margin-top: 16px; }
   .arm-score-value { font-size: 56px; }
   .arm-indicator-footer { display: grid; gap: 8px; margin-top: 14px; }
+  .arm-indicator-footer > span { white-space: normal; }
   .arm-indicator-footer p { max-width: none; text-align: left; }
 }
 
