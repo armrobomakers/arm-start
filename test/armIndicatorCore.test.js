@@ -67,7 +67,7 @@ test("indicator dashboard keeps the implementable three-panel hierarchy", () => 
   assert.match(css, /\.arm-indicator-legend-line strong[^}]*font-size:\s*12px/s);
   assert.match(css, /\.arm-indicator-legend-copy p[^}]*font-size:\s*10\.5px/s);
   assert.doesNotMatch(css, /\.arm-indicator-card\s*\{[^}]*min-height/s);
-  assert.doesNotMatch(css, /\.arm-gauge-pointer[^}]*transform|transform-origin|filter/s);
+  assert.doesNotMatch(css, /\.arm-gauge-pointer\s*\{[^}]*(?:transform|transform-origin|filter)/s);
 });
 
 test("page content uses the browser-verified top offsets", () => {
