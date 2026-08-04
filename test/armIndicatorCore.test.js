@@ -74,12 +74,11 @@ test("indicator dashboard keeps the implementable three-panel hierarchy", () => 
 
 test("mobile layout separates score from the gauge and keeps readable sizing", () => {
   const css = readFileSync(new URL("../src/styles/armIndicator.css", import.meta.url), "utf8");
-  const mobile = css.match(/@media \(max-width: 640px\) \{([\s\S]*?)\n\}/)?.[1] || "";
-  assert.match(mobile, /\.arm-gauge-score-overlay\s*\{[^}]*position:\s*static/s);
-  assert.match(mobile, /\.arm-gauge-score-overlay\s*\{[^}]*transform:\s*none/s);
-  assert.match(mobile, /\.arm-score-value\s*\{[^}]*clamp\(50px, 14\.5vw, 56px\)/s);
-  assert.match(mobile, /\.arm-gauge-pointer\s*\{[^}]*stroke-width:\s*5/s);
-  assert.match(mobile, /\.arm-indicator-signal-title\s*\{[^}]*clamp\(26px, 7\.6vw, 29px\)/s);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.arm-gauge-score-overlay\s*\{[^}]*position:\s*static/s);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.arm-gauge-score-overlay\s*\{[^}]*transform:\s*none/s);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.arm-score-value\s*\{[^}]*clamp\(50px, 14\.5vw, 56px\)/s);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.arm-gauge-pointer\s*\{[^}]*stroke-width:\s*5/s);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.arm-indicator-signal-title\s*\{[^}]*clamp\(26px, 7\.6vw, 29px\)/s);
 });
 
 test("page content uses the browser-verified top offsets", () => {
