@@ -1,0 +1,223 @@
+/* Final compactness pass layered after armIndicator.css. */
+
+@media (max-width: 1180px) {
+  .arm-indicator-main-grid,
+  .arm-dashboard-grid {
+    gap: 14px;
+  }
+
+  .arm-indicator-gauge-wrap {
+    width: min(100%, 520px);
+  }
+}
+
+@media (max-width: 820px) {
+  .arm-indicator-page-header {
+    margin-bottom: 11px;
+  }
+
+  .arm-indicator-main-grid,
+  .arm-dashboard-grid {
+    gap: 12px;
+  }
+
+  .arm-indicator-center {
+    padding-bottom: 3px;
+  }
+
+  .arm-indicator-info-panel,
+  .arm-indicator-legend-panel {
+    box-shadow: 0 8px 20px rgba(28, 58, 92, .04);
+  }
+}
+
+@media (max-width: 640px) {
+  .doc-page-indicator {
+    width: min(100% - 14px, 100%);
+    padding-top: 10px;
+  }
+
+  .arm-indicator-page-header {
+    max-width: 338px;
+    margin-bottom: 10px;
+  }
+
+  .arm-indicator-page-eyebrow {
+    font-size: 9.5px;
+  }
+
+  .arm-indicator-page-header h1 {
+    max-width: 324px;
+    margin: 5px auto 6px;
+    font-size: clamp(25px, 7.1vw, 28px);
+    line-height: .97;
+  }
+
+  .arm-indicator-page-header > p:last-child {
+    max-width: 318px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .arm-indicator-card {
+    padding: 12px;
+    border-radius: 20px;
+    box-shadow: 0 12px 28px rgba(28, 58, 92, .075);
+  }
+
+  .arm-indicator-main-grid,
+  .arm-dashboard-grid {
+    gap: 11px;
+  }
+
+  .arm-indicator-center {
+    padding: 0 0 2px;
+  }
+
+  .arm-indicator-gauge-wrap {
+    width: min(100%, 338px);
+  }
+
+  .arm-indicator-gauge-track,
+  .arm-indicator-gauge-segment {
+    stroke-width: 16;
+  }
+
+  .arm-indicator-tick-label {
+    font-size: 9.2px;
+  }
+
+  .arm-gauge-pointer {
+    stroke-width: 4.5;
+  }
+
+  .arm-gauge-score-overlay {
+    margin-top: -18px;
+  }
+
+  .arm-score-value {
+    font-size: clamp(48px, 13.6vw, 54px);
+  }
+
+  .arm-score-label {
+    margin-top: 3px;
+    font-size: 10px;
+  }
+
+  /* The large signal title already communicates the zone; hiding the duplicate pill
+     keeps the first mobile viewport focused on the gauge and action. */
+  .arm-indicator-status-pill {
+    display: none;
+  }
+
+  .arm-indicator-signal-title {
+    max-width: 310px;
+    margin: 8px auto 5px;
+    font-size: clamp(24px, 7vw, 27px);
+    line-height: 1.06;
+  }
+
+  .arm-indicator-recommendation {
+    max-width: 310px;
+    font-size: 14px;
+    line-height: 1.38;
+  }
+
+  .arm-indicator-info-panel,
+  .arm-indicator-legend-panel {
+    padding: 13px;
+    border-radius: 16px;
+  }
+
+  .arm-panel-heading {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .arm-panel-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+  }
+
+  .arm-panel-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .arm-panel-heading h3 {
+    font-size: 14.5px;
+  }
+
+  .arm-indicator-info-copy {
+    gap: 8px;
+  }
+
+  .arm-indicator-info-copy p {
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+
+  .arm-indicator-note {
+    gap: 8px;
+    margin-top: 11px;
+    padding: 10px;
+  }
+
+  .arm-indicator-note p {
+    line-height: 1.4;
+  }
+
+  .arm-indicator-legend {
+    gap: 6px;
+  }
+
+  .arm-indicator-legend-row {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .arm-indicator-legend-line strong {
+    font-size: 12.25px;
+  }
+
+  .arm-indicator-legend-copy p {
+    margin-top: 2px;
+    font-size: 10.75px;
+  }
+
+  .arm-indicator-footer {
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+}
+
+@media (max-width: 420px) {
+  .arm-indicator-page-header h1 {
+    max-width: 305px;
+    font-size: clamp(24px, 6.8vw, 26px);
+  }
+
+  .arm-indicator-gauge-wrap {
+    width: min(100%, 318px);
+  }
+
+  .arm-gauge-score-overlay {
+    margin-top: -16px;
+  }
+
+  .arm-score-value {
+    font-size: clamp(46px, 13.2vw, 50px);
+  }
+
+  .arm-indicator-signal-title {
+    max-width: 292px;
+    font-size: clamp(23px, 6.8vw, 25px);
+  }
+
+  .arm-indicator-info-panel,
+  .arm-indicator-legend-panel {
+    padding: 12px;
+  }
+}
