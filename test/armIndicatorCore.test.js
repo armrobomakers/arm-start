@@ -46,6 +46,7 @@ test("indicator UI keeps approved Russian labels and data states", () => {
   assert.match(source, /arm-gauge-score-overlay/);
   assert.match(source, /arm-score-value/);
   assert.match(source, /arm-score-label/);
+  assert.match(source, /--arm-zone-color/);
   assert.ok(source.indexOf('className="arm-gauge-pointer"') < source.indexOf('className="arm-indicator-needle-hub"'));
   assert.ok(source.indexOf('className="arm-gauge-pointer-tip"') < source.indexOf('className="arm-indicator-needle-hub"'));
   assert.doesNotMatch(source, /className="arm-gauge-pointer"[^>]*transform|markerEnd|clipPath|mask=/s);
@@ -66,14 +67,25 @@ test("indicator dashboard keeps the implementable three-panel hierarchy", () => 
   assert.match(css, /\.arm-indicator-signal-title\s*\{[^}]*font-size:\s*clamp\(30px, 3\.2vw, 42px\)/s);
   assert.match(css, /\.arm-indicator-legend-line strong[^}]*font-size:\s*12px/s);
   assert.match(css, /\.arm-indicator-legend-copy p[^}]*font-size:\s*10\.5px/s);
+  assert.match(css, /color-mix\(in srgb, var\(--arm-zone-color\)/);
   assert.doesNotMatch(css, /\.arm-indicator-card\s*\{[^}]*min-height/s);
   assert.doesNotMatch(css, /\.arm-gauge-pointer\s*\{[^}]*(?:transform|transform-origin|filter)/s);
+});
+
+test("mobile layout separates score from the gauge and keeps readable sizing", () => {
+  const css = readFileSync(new URL("../src/styles/armIndicator.css", import.meta.url), "utf8");
+  const mobile = css.match(/@media \(max-width: 640px\) \{([\s\S]*?)\n\}/)?.[1] || "";
+  assert.match(mobile, /\.arm-gauge-score-overlay\s*\{[^}]*position:\s*static/s);
+  assert.match(mobile, /\.arm-gauge-score-overlay\s*\{[^}]*transform:\s*none/s);
+  assert.match(mobile, /\.arm-score-value\s*\{[^}]*clamp\(50px, 14\.5vw, 56px\)/s);
+  assert.match(mobile, /\.arm-gauge-pointer\s*\{[^}]*stroke-width:\s*5/s);
+  assert.match(mobile, /\.arm-indicator-signal-title\s*\{[^}]*clamp\(26px, 7\.6vw, 29px\)/s);
 });
 
 test("page content uses the browser-verified top offsets", () => {
   const css = readFileSync(new URL("../src/styles/armIndicator.css", import.meta.url), "utf8");
   assert.match(css, /\.doc-page-indicator\s*\{[^}]*padding-top:\s*16px/s);
-  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.doc-page-indicator\s*\{[^}]*padding-top:\s*14px/s);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.doc-page-indicator\s*\{[^}]*padding-top:\s*12px/s);
 });
 
 test("visual fixture intercepts the current endpoint with the approved snapshot", () => {
