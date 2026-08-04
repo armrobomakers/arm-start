@@ -48,6 +48,14 @@ function formatScore(value) {
   return "0";
 }
 
+function getCurrentZone(snapshot) {
+  return ARM_INDICATOR_LEGEND.find((item) => item.zone === snapshot?.zone) || ARM_INDICATOR_LEGEND[2];
+}
+
+function getCurrentSegment(snapshot) {
+  return GAUGE_SEGMENTS.find((item) => item.zone === snapshot?.zone) || GAUGE_SEGMENTS[2];
+}
+
 function useArmIndicatorData() {
   const [state, setState] = useState({ status: "loading", current: null, error: "" });
 
@@ -95,7 +103,7 @@ function PanelHeading({ type, children }) {
 
 function IndicatorInfo({ snapshot }) {
   const score = Number(snapshot?.score) || 0;
-  const currentZone = ARM_INDICATOR_LEGEND.find((item) => item.zone === snapshot?.zone) || ARM_INDICATOR_LEGEND[2];
+  const currentZone = getCurrentZone(snapshot);
 
   return (
     <aside className="arm-indicator-info-panel">
@@ -117,11 +125,13 @@ function IndicatorInfo({ snapshot }) {
 
 function Gauge({ snapshot }) {
   const score = Number(snapshot?.score) || 0;
-  const currentZone = ARM_INDICATOR_LEGEND.find((item) => item.zone === snapshot?.zone) || ARM_INDICATOR_LEGEND[2];
+  const currentZone = getCurrentZone(snapshot);
+  const currentSegment = getCurrentSegment(snapshot);
   const pointer = calculatePointerEndpoint(score, GAUGE_CENTER.x, GAUGE_CENTER.y, NEEDLE_LENGTH);
+  const zoneStyle = { "--arm-zone-color": currentSegment.color };
 
   return (
-    <div className="arm-indicator-center">
+    <div className="arm-indicator-center" style={zoneStyle} data-zone={snapshot?.zone || "neutral"}>
       <div className="arm-indicator-gauge-wrap">
         <div className="arm-indicator-gauge-stage">
           <svg className="arm-indicator-gauge-svg" viewBox="0 0 420 215" role="img" aria-label={`Шкала оценки ARM, значение ${score}`}>
@@ -143,9 +153,9 @@ function Gauge({ snapshot }) {
               );
             })}
             <line className="arm-gauge-pointer" x1={GAUGE_CENTER.x} y1={GAUGE_CENTER.y} x2={pointer.x} y2={pointer.y} />
-            <circle className="arm-gauge-pointer-tip" cx={pointer.x} cy={pointer.y} r="4.5" />
-            <circle className="arm-indicator-needle-hub-ring" cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="13" />
-            <circle className="arm-indicator-needle-hub" cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="9" />
+            <circle className="arm-gauge-pointer-tip" cx={pointer.x} cy={pointer.y} r="3.8" />
+            <circle className="arm-indicator-needle-hub-ring" cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="12" />
+            <circle className="arm-indicator-needle-hub" cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="8" />
           </svg>
           <div className="arm-gauge-score-overlay" aria-label={`Оценка ARM: ${score}`}>
             <div className="arm-score-value">{formatScore(score)}</div>
@@ -170,7 +180,11 @@ function IndicatorLegend({ snapshot }) {
           const segment = GAUGE_SEGMENTS[index];
           const isActive = snapshot?.zone === item.zone;
           return (
-            <div className={`arm-indicator-legend-row${isActive ? " is-active" : ""}`} key={item.zone}>
+            <div
+              className={`arm-indicator-legend-row${isActive ? " is-active" : ""}`}
+              style={{ "--arm-zone-color": segment.color }}
+              key={item.zone}
+            >
               <span className="arm-indicator-legend-dot" style={{ backgroundColor: segment.color }} />
               <div className="arm-indicator-legend-copy">
                 <div className="arm-indicator-legend-line"><strong>{item.label}</strong><span>{item.range}</span></div>
