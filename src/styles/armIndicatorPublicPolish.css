@@ -15,6 +15,7 @@
 
 .arm-indicator-main-grid,
 .arm-dashboard-grid {
+  grid-template-columns: minmax(205px, .68fr) minmax(430px, 1.56fr) minmax(285px, .96fr);
   gap: 16px;
 }
 
@@ -44,15 +45,15 @@
 }
 
 .arm-indicator-gauge-wrap {
-  width: min(100%, 500px);
+  width: min(100%, 488px);
 }
 
 .arm-gauge-score-overlay {
-  top: 50%;
+  top: 52%;
 }
 
 .arm-score-value {
-  font-size: clamp(54px, 4.6vw, 68px);
+  font-size: clamp(52px, 4.45vw, 66px);
   line-height: .9;
 }
 
@@ -61,15 +62,15 @@
 }
 
 .arm-indicator-status-pill {
-  margin-top: 3px;
+  margin-top: 1px;
   padding: 7px 12px;
   font-size: 12px;
 }
 
 .arm-indicator-signal-title {
   max-width: 570px;
-  margin: 9px auto 5px;
-  font-size: clamp(28px, 2.6vw, 36px);
+  margin: 8px auto 4px;
+  font-size: clamp(28px, 2.5vw, 35px);
   line-height: 1.05;
 }
 
@@ -83,7 +84,7 @@
 }
 
 .arm-indicator-legend-row {
-  min-height: 54px;
+  min-height: 0;
   padding: 9px;
 }
 
@@ -93,8 +94,7 @@
   line-height: 1.27;
 }
 
-/* Keep the current-zone badge in the normal document flow. The previous
-   absolute positioning covered the description on narrower legend cards. */
+/* Keep the current-zone badge in normal flow so it never covers the copy. */
 .arm-indicator-legend-row em {
   position: static;
   grid-column: 2;
@@ -112,11 +112,17 @@
 @media (max-width: 1180px) {
   .arm-indicator-main-grid,
   .arm-dashboard-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "gauge gauge" "info legend";
     gap: 14px;
   }
 
   .arm-indicator-gauge-wrap {
     width: min(100%, 500px);
+  }
+
+  .arm-gauge-score-overlay {
+    top: 48%;
   }
 }
 
@@ -127,6 +133,8 @@
 
   .arm-indicator-main-grid,
   .arm-dashboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas: "gauge" "info" "legend";
     gap: 12px;
   }
 
@@ -216,8 +224,6 @@
     font-size: 10px;
   }
 
-  /* The large signal title already communicates the zone; hiding the duplicate pill
-     keeps the first mobile viewport focused on the gauge and action. */
   .arm-indicator-status-pill {
     display: none;
   }
