@@ -1,0 +1,109 @@
+/* Final desktop composition pass based on the 1366px preview review. */
+
+.arm-indicator-legend-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 8px;
+}
+
+.arm-indicator-legend-line span {
+  align-self: start;
+  font-size: 9.5px;
+}
+
+.arm-indicator-legend-row em {
+  position: static;
+  grid-column: 2;
+  justify-self: start;
+  width: fit-content;
+  margin-top: 4px;
+}
+
+@media (min-width: 1181px) {
+  .arm-indicator-main-grid,
+  .arm-dashboard-grid {
+    grid-template-columns: minmax(210px, .78fr) minmax(390px, 1.5fr) minmax(270px, 1fr);
+    gap: 16px;
+  }
+
+  .arm-indicator-gauge-wrap {
+    width: min(100%, 480px);
+  }
+
+  .arm-gauge-score-overlay {
+    top: 51%;
+  }
+
+  .arm-score-value {
+    font-size: clamp(54px, 4.25vw, 64px);
+  }
+
+  .arm-indicator-status-pill {
+    margin-top: 4px;
+  }
+
+  .arm-indicator-signal-title {
+    max-width: 540px;
+    margin-top: 8px;
+    font-size: clamp(28px, 2.45vw, 34px);
+    font-weight: 650;
+    line-height: 1.06;
+  }
+
+  .arm-indicator-recommendation {
+    font-size: 14.5px;
+  }
+
+  .arm-indicator-info-panel {
+    padding: 16px;
+  }
+
+  .arm-indicator-legend-panel {
+    padding: 14px;
+  }
+
+  .arm-indicator-legend-row {
+    min-height: 56px;
+    padding: 9px 10px;
+  }
+
+  .arm-indicator-legend-copy p {
+    max-width: 100%;
+    font-size: 10.25px;
+    line-height: 1.3;
+  }
+
+  .arm-indicator-footer p {
+    max-width: 500px;
+  }
+}
+
+@media (min-width: 821px) and (max-width: 1180px) {
+  .arm-indicator-gauge-wrap {
+    width: min(100%, 490px);
+  }
+
+  .arm-gauge-score-overlay {
+    top: 50%;
+  }
+
+  .arm-score-value {
+    font-size: clamp(54px, 5vw, 66px);
+  }
+
+  .arm-indicator-signal-title {
+    font-size: clamp(28px, 3vw, 35px);
+  }
+}
+
+@media (max-width: 640px) {
+  .arm-indicator-legend-line {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+
+  .arm-indicator-legend-row em {
+    grid-column: 2;
+  }
+}

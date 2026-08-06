@@ -1,0 +1,345 @@
+/* Final public-ready hierarchy and compactness layer. */
+
+.arm-indicator-page-header {
+  margin-bottom: 10px;
+}
+
+.arm-indicator-page-header h1 {
+  font-size: clamp(30px, 2.55vw, 37px);
+}
+
+.arm-indicator-card {
+  padding: 16px;
+  border-radius: 22px;
+}
+
+.arm-indicator-main-grid,
+.arm-dashboard-grid {
+  grid-template-columns: minmax(205px, .68fr) minmax(430px, 1.56fr) minmax(285px, .96fr);
+  gap: 16px;
+}
+
+.arm-indicator-info-panel {
+  padding: 15px;
+}
+
+.arm-indicator-legend-panel {
+  padding: 13px;
+}
+
+.arm-panel-heading {
+  margin-bottom: 12px;
+}
+
+.arm-indicator-info-copy {
+  gap: 9px;
+}
+
+.arm-indicator-info-copy p {
+  font-size: 12.25px;
+  line-height: 1.48;
+}
+
+.arm-indicator-note {
+  padding: 10px;
+}
+
+.arm-indicator-gauge-wrap {
+  width: min(100%, 488px);
+}
+
+.arm-gauge-score-overlay {
+  top: 52%;
+}
+
+.arm-score-value {
+  font-size: clamp(52px, 4.45vw, 66px);
+  line-height: .9;
+}
+
+.arm-score-label {
+  margin-top: 4px;
+}
+
+.arm-indicator-status-pill {
+  margin-top: 1px;
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
+.arm-indicator-signal-title {
+  max-width: 570px;
+  margin: 8px auto 4px;
+  font-size: clamp(28px, 2.5vw, 35px);
+  line-height: 1.05;
+}
+
+.arm-indicator-recommendation {
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.arm-indicator-legend {
+  gap: 6px;
+}
+
+.arm-indicator-legend-row {
+  min-height: 0;
+  padding: 9px;
+}
+
+.arm-indicator-legend-copy p {
+  margin-top: 2px;
+  font-size: 10.25px;
+  line-height: 1.27;
+}
+
+/* Keep the current-zone badge in normal flow so it never covers the copy. */
+.arm-indicator-legend-row em {
+  position: static;
+  grid-column: 2;
+  justify-self: start;
+  width: fit-content;
+  margin-top: 4px;
+  padding: 3px 6px;
+}
+
+.arm-indicator-footer {
+  margin-top: 11px;
+  padding-top: 10px;
+}
+
+@media (max-width: 1180px) {
+  .arm-indicator-main-grid,
+  .arm-dashboard-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "gauge gauge" "info legend";
+    gap: 14px;
+  }
+
+  .arm-indicator-gauge-wrap {
+    width: min(100%, 500px);
+  }
+
+  .arm-gauge-score-overlay {
+    top: 48%;
+  }
+}
+
+@media (max-width: 820px) {
+  .arm-indicator-page-header {
+    margin-bottom: 11px;
+  }
+
+  .arm-indicator-main-grid,
+  .arm-dashboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas: "gauge" "info" "legend";
+    gap: 12px;
+  }
+
+  .arm-indicator-center {
+    padding-bottom: 3px;
+  }
+
+  .arm-indicator-info-panel,
+  .arm-indicator-legend-panel {
+    box-shadow: 0 8px 20px rgba(28, 58, 92, .04);
+  }
+}
+
+@media (max-width: 640px) {
+  .doc-page-indicator {
+    width: min(100% - 14px, 100%);
+    padding-top: 10px;
+  }
+
+  .arm-indicator-page-header {
+    max-width: 338px;
+    margin-bottom: 10px;
+  }
+
+  .arm-indicator-page-eyebrow {
+    font-size: 9.5px;
+  }
+
+  .arm-indicator-page-header h1 {
+    max-width: 324px;
+    margin: 5px auto 6px;
+    font-size: clamp(25px, 7.1vw, 28px);
+    line-height: .97;
+  }
+
+  .arm-indicator-page-header > p:last-child {
+    max-width: 318px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .arm-indicator-card {
+    padding: 12px;
+    border-radius: 20px;
+    box-shadow: 0 12px 28px rgba(28, 58, 92, .075);
+  }
+
+  .arm-indicator-main-grid,
+  .arm-dashboard-grid {
+    gap: 11px;
+  }
+
+  .arm-indicator-center {
+    padding: 0 0 2px;
+  }
+
+  .arm-indicator-gauge-wrap {
+    width: min(100%, 338px);
+  }
+
+  .arm-indicator-gauge-track,
+  .arm-indicator-gauge-segment {
+    stroke-width: 16;
+  }
+
+  .arm-indicator-tick-label {
+    font-size: 9.2px;
+  }
+
+  .arm-gauge-pointer {
+    stroke-width: 4.5;
+  }
+
+  .arm-gauge-score-overlay {
+    position: static;
+    top: auto;
+    transform: none;
+    margin-top: -18px;
+  }
+
+  .arm-score-value {
+    font-size: clamp(48px, 13.6vw, 54px);
+  }
+
+  .arm-score-label {
+    margin-top: 3px;
+    font-size: 10px;
+  }
+
+  .arm-indicator-status-pill {
+    display: none;
+  }
+
+  .arm-indicator-signal-title {
+    max-width: 310px;
+    margin: 8px auto 5px;
+    font-size: clamp(24px, 7vw, 27px);
+    line-height: 1.06;
+  }
+
+  .arm-indicator-recommendation {
+    max-width: 310px;
+    font-size: 14px;
+    line-height: 1.38;
+  }
+
+  .arm-indicator-info-panel,
+  .arm-indicator-legend-panel {
+    padding: 13px;
+    border-radius: 16px;
+  }
+
+  .arm-panel-heading {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .arm-panel-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+  }
+
+  .arm-panel-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .arm-panel-heading h3 {
+    font-size: 14.5px;
+  }
+
+  .arm-indicator-info-copy {
+    gap: 8px;
+  }
+
+  .arm-indicator-info-copy p {
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+
+  .arm-indicator-note {
+    gap: 8px;
+    margin-top: 11px;
+    padding: 10px;
+  }
+
+  .arm-indicator-note p {
+    line-height: 1.4;
+  }
+
+  .arm-indicator-legend {
+    gap: 6px;
+  }
+
+  .arm-indicator-legend-row {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .arm-indicator-legend-line strong {
+    font-size: 12.25px;
+  }
+
+  .arm-indicator-legend-copy p {
+    margin-top: 2px;
+    font-size: 10.75px;
+  }
+
+  .arm-indicator-legend-row em {
+    margin-top: 5px;
+  }
+
+  .arm-indicator-footer {
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+}
+
+@media (max-width: 420px) {
+  .arm-indicator-page-header h1 {
+    max-width: 305px;
+    font-size: clamp(24px, 6.8vw, 26px);
+  }
+
+  .arm-indicator-gauge-wrap {
+    width: min(100%, 318px);
+  }
+
+  .arm-gauge-score-overlay {
+    margin-top: -16px;
+  }
+
+  .arm-score-value {
+    font-size: clamp(46px, 13.2vw, 50px);
+  }
+
+  .arm-indicator-signal-title {
+    max-width: 292px;
+    font-size: clamp(23px, 6.8vw, 25px);
+  }
+
+  .arm-indicator-info-panel,
+  .arm-indicator-legend-panel {
+    padding: 12px;
+  }
+}
