@@ -4,6 +4,7 @@ import App from "./App";
 import "./styles.css";
 import "./styles/armIndicator.css";
 import "./styles/armIndicatorPublicPolish.css";
+import "./styles/armIndicatorDesktopFinish.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
