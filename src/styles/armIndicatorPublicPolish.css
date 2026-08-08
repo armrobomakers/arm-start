@@ -6,6 +6,7 @@
 
 .arm-indicator-page-header h1 {
   font-size: clamp(30px, 2.55vw, 37px);
+  font-weight: 500;
 }
 
 .arm-indicator-card {
