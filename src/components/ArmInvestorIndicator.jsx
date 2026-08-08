@@ -184,6 +184,22 @@ function Gauge({ snapshot }) {
   const currentZone = getCurrentZone(snapshot);
   const currentSegment = getCurrentSegment(snapshot);
   const pointer = calculatePointerEndpoint(score, GAUGE_CENTER.x, GAUGE_CENTER.y, NEEDLE_VISIBLE_LENGTH);
+  const pointerDx = pointer.x - GAUGE_CENTER.x;
+  const pointerDy = pointer.y - GAUGE_CENTER.y;
+  const pointerDistance = Math.hypot(pointerDx, pointerDy) || 1;
+  const unitX = pointerDx / pointerDistance;
+  const unitY = pointerDy / pointerDistance;
+  const headLength = 11;
+  const headHalfWidth = 5.5;
+  const headBaseX = pointer.x - unitX * headLength;
+  const headBaseY = pointer.y - unitY * headLength;
+  const headLeftX = headBaseX - unitY * headHalfWidth;
+  const headLeftY = headBaseY + unitX * headHalfWidth;
+  const headRightX = headBaseX + unitY * headHalfWidth;
+  const headRightY = headBaseY - unitX * headHalfWidth;
+  const shaftEndX = pointer.x - unitX * (headLength - 2);
+  const shaftEndY = pointer.y - unitY * (headLength - 2);
+  const arrowHeadPoints = `${pointer.x},${pointer.y} ${headLeftX},${headLeftY} ${headRightX},${headRightY}`;
   const zoneStyle = { "--arm-zone-color": currentSegment.color };
 
   return (
@@ -208,7 +224,8 @@ function Gauge({ snapshot }) {
                 </g>
               );
             })}
-            <line className="arm-gauge-pointer" x1={GAUGE_CENTER.x} y1={GAUGE_CENTER.y} x2={pointer.x} y2={pointer.y} />
+            <line className="arm-gauge-pointer" x1={GAUGE_CENTER.x} y1={GAUGE_CENTER.y} x2={shaftEndX} y2={shaftEndY} />
+            <polygon className="arm-gauge-pointer-head" points={arrowHeadPoints} fill="#142944" />
             <circle className="arm-gauge-pointer-tip" cx={pointer.x} cy={pointer.y} r="3" />
             <circle className="arm-indicator-needle-hub-ring" cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="12" />
             <circle className="arm-indicator-needle-hub" cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="8" />
