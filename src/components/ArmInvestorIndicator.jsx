@@ -6,12 +6,13 @@ const GAUGE_CENTER = { x: 210, y: 174 };
 const GAUGE_RADIUS = 112;
 const NEEDLE_VISIBLE_LENGTH = 95;
 const GAUGE_SEGMENTS = [
-  { from: -100, to: -61.5, color: "#225f35", zone: "strong_buy" },
-  { from: -58.5, to: -21.5, color: "#4caf50", zone: "buy" },
-  { from: -18.5, to: 18.5, color: "#a7b0bd", zone: "neutral" },
-  { from: 21.5, to: 58.5, color: "#e5a323", zone: "profit" },
-  { from: 61.5, to: 100, color: "#cc4b3e", zone: "strong_profit" },
+  { from: -100, to: -60, color: "#225f35", zone: "strong_buy" },
+  { from: -60, to: -20, color: "#4caf50", zone: "buy" },
+  { from: -20, to: 20, color: "#a7b0bd", zone: "neutral" },
+  { from: 20, to: 60, color: "#e5a323", zone: "profit" },
+  { from: 60, to: 100, color: "#cc4b3e", zone: "strong_profit" },
 ];
+const GAUGE_ZONE_BOUNDARIES = [-60, -20, 20, 60];
 const GAUGE_SCALE_TICKS = Array.from({ length: 51 }, (_, index) => -100 + index * 4);
 const MAJOR_TICKS = new Set(ARM_INDICATOR_TICKS);
 
@@ -36,10 +37,10 @@ function describeArc(centerX, centerY, radius, startAngle, endAngle) {
 }
 
 function getGaugeColor(score) {
-  if (score <= -60) return GAUGE_SEGMENTS[0].color;
-  if (score <= -21) return GAUGE_SEGMENTS[1].color;
+  if (score < -60) return GAUGE_SEGMENTS[0].color;
+  if (score < -20) return GAUGE_SEGMENTS[1].color;
   if (score <= 20) return GAUGE_SEGMENTS[2].color;
-  if (score <= 59) return GAUGE_SEGMENTS[3].color;
+  if (score < 60) return GAUGE_SEGMENTS[3].color;
   return GAUGE_SEGMENTS[4].color;
 }
 
@@ -223,12 +224,30 @@ function Gauge({ snapshot }) {
               />
             ))}
 
+            {GAUGE_ZONE_BOUNDARIES.map((boundary) => {
+              const angle = boundary * 0.9;
+              const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS - 13, angle);
+              const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS + 13, angle);
+              return (
+                <line
+                  key={`divider-${boundary}`}
+                  x1={inner.x}
+                  y1={inner.y}
+                  x2={outer.x}
+                  y2={outer.y}
+                  stroke="#ffffff"
+                  strokeWidth="4"
+                  strokeLinecap="butt"
+                />
+              );
+            })}
+
             {GAUGE_SCALE_TICKS.map((tick) => {
               const major = MAJOR_TICKS.has(tick);
               const medium = !major && tick % 20 === 0;
               const angle = tick * 0.9;
-              const innerRadius = major ? 128 : medium ? 133 : 137;
-              const outerRadius = major ? 150 : 149;
+              const innerRadius = major ? 123 : medium ? 125 : 127;
+              const outerRadius = major ? 151 : 149;
               const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, innerRadius, angle);
               const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, outerRadius, angle);
               const tickClass = major ? " is-major" : medium ? " is-medium" : "";
