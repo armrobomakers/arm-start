@@ -39,7 +39,7 @@ test("indicator UI keeps approved Russian labels and data states", () => {
   assert.match(source, /arm-indicator-info-panel/);
   assert.match(source, /arm-indicator-center/);
   assert.match(source, /arm-indicator-legend-panel/);
-  assert.match(source, /arm-indicator-status-pill/);
+  assert.doesNotMatch(source, /arm-indicator-status-pill/);
   assert.match(source, /NEEDLE_VISIBLE_LENGTH = 95/);
   assert.match(source, /GAUGE_SCALE_TICKS/);
   assert.match(source, /className="arm-gauge-pointer"/);
