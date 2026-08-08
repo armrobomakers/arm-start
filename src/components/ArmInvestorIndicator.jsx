@@ -251,7 +251,7 @@ function Gauge({ snapshot }) {
             </defs>
 
             <path
-              className="arm-indicator-gauge-track"
+              className="arm-indicator-gauge-band"
               d={gaugeBandPath}
               fill="url(#arm-gauge-band-gradient)"
               stroke="none"
