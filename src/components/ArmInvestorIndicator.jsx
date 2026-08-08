@@ -305,7 +305,6 @@ function Gauge({ snapshot }) {
           </div>
         </div>
       </div>
-      <div className="arm-indicator-status-pill" hidden><span aria-hidden="true">✓</span>Текущая зона</div>
       <h2 className="arm-indicator-signal-title">{currentZone.label}</h2>
       <p className="arm-indicator-recommendation">{currentZone.description}</p>
       <span className="sr-only">Текущая зона: {currentZone.label}</span>
