@@ -7,13 +7,12 @@ const GAUGE_BAND_INNER_RADIUS = 100;
 const GAUGE_BAND_OUTER_RADIUS = 124;
 const NEEDLE_VISIBLE_LENGTH = 95;
 const GAUGE_SEGMENTS = [
-  { from: -100, to: -60, color: "#4b9564", zone: "strong_buy" },
-  { from: -60, to: -20, color: "#78d873", zone: "buy" },
-  { from: -20, to: 20, color: "#d7dde6", zone: "neutral" },
-  { from: 20, to: 60, color: "#f6c75f", zone: "profit" },
-  { from: 60, to: 100, color: "#ef786a", zone: "strong_profit" },
+  { from: -100, to: -60, color: "#5fa978", zone: "strong_buy" },
+  { from: -60, to: -20, color: "#8cdd8a", zone: "buy" },
+  { from: -20, to: 20, color: "#e4e9f0", zone: "neutral" },
+  { from: 20, to: 60, color: "#f9d781", zone: "profit" },
+  { from: 60, to: 100, color: "#f29a8f", zone: "strong_profit" },
 ];
-const GAUGE_ZONE_BOUNDARIES = [-60, -20, 20, 60];
 const GAUGE_SCALE_TICKS = Array.from({ length: 51 }, (_, index) => -100 + index * 4);
 const MAJOR_TICKS = new Set(ARM_INDICATOR_TICKS);
 
@@ -209,43 +208,57 @@ function Gauge({ snapshot }) {
   };
   const pointerPoints = `${pointer.x},${pointer.y} ${pointerBaseLeft.x},${pointerBaseLeft.y} ${pointerBaseRight.x},${pointerBaseRight.y}`;
   const zoneStyle = { "--arm-zone-color": currentSegment.color };
+  const gaugeBandPath = describeBandSegment(
+    GAUGE_CENTER.x,
+    GAUGE_CENTER.y,
+    GAUGE_BAND_INNER_RADIUS,
+    GAUGE_BAND_OUTER_RADIUS,
+    -90,
+    90,
+  );
 
   return (
     <div className="arm-indicator-center" style={zoneStyle} data-zone={snapshot?.zone || "neutral"}>
       <div className="arm-indicator-gauge-wrap">
         <div className="arm-indicator-gauge-stage">
           <svg className="arm-indicator-gauge-svg" viewBox="0 0 420 205" role="img" aria-label={`Шкала оценки ARM, значение ${score}`}>
+            <defs>
+              <linearGradient id="arm-gauge-band-gradient" gradientUnits="userSpaceOnUse" x1="86" y1="174" x2="334" y2="174">
+                <stop offset="0%" stopColor="#5fa978" />
+                <stop offset="8%" stopColor="#69b786" />
+                <stop offset="21%" stopColor="#8cdd8a" />
+                <stop offset="34%" stopColor="#b9e3b6" />
+                <stop offset="46%" stopColor="#dde7e6" />
+                <stop offset="50%" stopColor="#e4e9f0" />
+                <stop offset="57%" stopColor="#eee5cb" />
+                <stop offset="72%" stopColor="#f9d781" />
+                <stop offset="86%" stopColor="#f5b28b" />
+                <stop offset="100%" stopColor="#f29a8f" />
+              </linearGradient>
+              <linearGradient id="arm-gauge-band-highlight" gradientUnits="userSpaceOnUse" x1="210" y1="50" x2="210" y2="174">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.42" />
+                <stop offset="42%" stopColor="#ffffff" stopOpacity="0.18" />
+                <stop offset="78%" stopColor="#ffffff" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="arm-gauge-band-shade" gradientUnits="userSpaceOnUse" x1="210" y1="50" x2="210" y2="174">
+                <stop offset="30%" stopColor="#173653" stopOpacity="0" />
+                <stop offset="78%" stopColor="#173653" stopOpacity="0.05" />
+                <stop offset="100%" stopColor="#173653" stopOpacity="0.12" />
+              </linearGradient>
+              <filter id="arm-gauge-band-shadow" x="-20%" y="-30%" width="140%" height="170%">
+                <feDropShadow dx="0" dy="3" stdDeviation="3.2" floodColor="#173653" floodOpacity="0.14" />
+              </filter>
+            </defs>
+
             <path
               className="arm-indicator-gauge-track"
-              d={describeBandSegment(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_INNER_RADIUS, GAUGE_BAND_OUTER_RADIUS, -90, 90)}
-              style={{ fill: "#edf1f5", stroke: "none" }}
+              d={gaugeBandPath}
+              fill="url(#arm-gauge-band-gradient)"
+              stroke="none"
+              filter="url(#arm-gauge-band-shadow)"
             />
-            {GAUGE_SEGMENTS.map((segment) => (
-              <path
-                className="arm-indicator-gauge-segment"
-                d={describeBandSegment(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_INNER_RADIUS, GAUGE_BAND_OUTER_RADIUS, segment.from * 0.9, segment.to * 0.9)}
-                style={{ fill: segment.color, stroke: "none" }}
-                key={segment.zone}
-              />
-            ))}
-
-            {GAUGE_ZONE_BOUNDARIES.map((boundary) => {
-              const angle = boundary * 0.9;
-              const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_INNER_RADIUS, angle);
-              const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_OUTER_RADIUS, angle);
-              return (
-                <line
-                  key={`divider-${boundary}`}
-                  x1={inner.x}
-                  y1={inner.y}
-                  x2={outer.x}
-                  y2={outer.y}
-                  stroke="#ffffff"
-                  strokeWidth="4"
-                  strokeLinecap="butt"
-                />
-              );
-            })}
+            <path className="arm-indicator-gauge-highlight" d={gaugeBandPath} fill="url(#arm-gauge-band-highlight)" stroke="none" />
+            <path className="arm-indicator-gauge-shade" d={gaugeBandPath} fill="url(#arm-gauge-band-shade)" stroke="none" />
 
             {GAUGE_SCALE_TICKS.map((tick) => {
               const major = MAJOR_TICKS.has(tick);
