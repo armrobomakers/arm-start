@@ -170,7 +170,9 @@ function MobileAccordion({ type, title, className, children }) {
     <details className={`arm-mobile-accordion ${className}`}>
       <summary>
         <PanelHeading type={type}>{title}</PanelHeading>
-        <span className="arm-mobile-accordion-chevron" aria-hidden="true">⌄</span>
+        <span className="arm-mobile-accordion-chevron" aria-hidden="true">
+          <svg viewBox="0 0 20 20"><path d="m5.5 7.5 4.5 4.5 4.5-4.5" /></svg>
+        </span>
       </summary>
       <div className="arm-mobile-accordion-body">{children}</div>
     </details>
@@ -217,7 +219,7 @@ function Gauge({ snapshot }) {
           </div>
         </div>
       </div>
-      <div className="arm-indicator-status-pill"><span aria-hidden="true">✓</span>{currentZone.label}</div>
+      <div className="arm-indicator-status-pill"><span aria-hidden="true">✓</span>Текущая зона</div>
       <h2 className="arm-indicator-signal-title">{currentZone.label}</h2>
       <p className="arm-indicator-recommendation">{currentZone.description}</p>
       <span className="sr-only">Текущая зона: {currentZone.label}</span>
