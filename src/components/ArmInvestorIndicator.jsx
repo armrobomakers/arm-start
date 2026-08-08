@@ -3,15 +3,15 @@ import { ARM_INDICATOR_TICKS, calculatePointerEndpoint } from "../lib/armIndicat
 
 const CURRENT_ENDPOINT = "/api/arm-indicator/current";
 const GAUGE_CENTER = { x: 210, y: 174 };
-const GAUGE_RADIUS = 112;
-const GAUGE_BAND_OUTER_RADIUS = GAUGE_RADIUS + 12;
+const GAUGE_BAND_INNER_RADIUS = 100;
+const GAUGE_BAND_OUTER_RADIUS = 124;
 const NEEDLE_VISIBLE_LENGTH = 95;
 const GAUGE_SEGMENTS = [
-  { from: -100, to: -60, color: "#225f35", zone: "strong_buy" },
-  { from: -60, to: -20, color: "#4caf50", zone: "buy" },
-  { from: -20, to: 20, color: "#a7b0bd", zone: "neutral" },
-  { from: 20, to: 60, color: "#e5a323", zone: "profit" },
-  { from: 60, to: 100, color: "#cc4b3e", zone: "strong_profit" },
+  { from: -100, to: -60, color: "#357f52", zone: "strong_buy" },
+  { from: -60, to: -20, color: "#6bcf66", zone: "buy" },
+  { from: -20, to: 20, color: "#cbd3de", zone: "neutral" },
+  { from: 20, to: 60, color: "#f4be4a", zone: "profit" },
+  { from: 60, to: 100, color: "#e76454", zone: "strong_profit" },
 ];
 const GAUGE_ZONE_BOUNDARIES = [-60, -20, 20, 60];
 const GAUGE_SCALE_TICKS = Array.from({ length: 51 }, (_, index) => -100 + index * 4);
@@ -30,11 +30,19 @@ function polarToCartesian(centerX, centerY, radius, angleDeg) {
   return { x: centerX + radius * Math.cos(angleRad), y: centerY + radius * Math.sin(angleRad) };
 }
 
-function describeArc(centerX, centerY, radius, startAngle, endAngle) {
-  const start = polarToCartesian(centerX, centerY, radius, endAngle);
-  const end = polarToCartesian(centerX, centerY, radius, startAngle);
+function describeBandSegment(centerX, centerY, innerRadius, outerRadius, startAngle, endAngle) {
+  const outerStart = polarToCartesian(centerX, centerY, outerRadius, startAngle);
+  const outerEnd = polarToCartesian(centerX, centerY, outerRadius, endAngle);
+  const innerEnd = polarToCartesian(centerX, centerY, innerRadius, endAngle);
+  const innerStart = polarToCartesian(centerX, centerY, innerRadius, startAngle);
   const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-  return `M ${start.x.toFixed(3)} ${start.y.toFixed(3)} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x.toFixed(3)} ${end.y.toFixed(3)}`;
+  return [
+    `M ${outerStart.x.toFixed(3)} ${outerStart.y.toFixed(3)}`,
+    `A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${outerEnd.x.toFixed(3)} ${outerEnd.y.toFixed(3)}`,
+    `L ${innerEnd.x.toFixed(3)} ${innerEnd.y.toFixed(3)}`,
+    `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${innerStart.x.toFixed(3)} ${innerStart.y.toFixed(3)}`,
+    "Z",
+  ].join(" ");
 }
 
 function getGaugeColor(score) {
@@ -215,20 +223,24 @@ function Gauge({ snapshot }) {
       <div className="arm-indicator-gauge-wrap">
         <div className="arm-indicator-gauge-stage">
           <svg className="arm-indicator-gauge-svg" viewBox="0 0 420 205" role="img" aria-label={`Шкала оценки ARM, значение ${score}`}>
-            <path className="arm-indicator-gauge-track" d={describeArc(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS, -90, 90)} />
+            <path
+              className="arm-indicator-gauge-track"
+              d={describeBandSegment(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_INNER_RADIUS, GAUGE_BAND_OUTER_RADIUS, -90, 90)}
+              style={{ fill: "#edf1f5", stroke: "none" }}
+            />
             {GAUGE_SEGMENTS.map((segment) => (
               <path
                 className="arm-indicator-gauge-segment"
-                d={describeArc(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS, segment.from * 0.9, segment.to * 0.9)}
-                stroke={segment.color}
+                d={describeBandSegment(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_INNER_RADIUS, GAUGE_BAND_OUTER_RADIUS, segment.from * 0.9, segment.to * 0.9)}
+                style={{ fill: segment.color, stroke: "none" }}
                 key={segment.zone}
               />
             ))}
 
             {GAUGE_ZONE_BOUNDARIES.map((boundary) => {
               const angle = boundary * 0.9;
-              const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS - 13, angle);
-              const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_OUTER_RADIUS + 1, angle);
+              const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_INNER_RADIUS - 1, angle);
+              const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_OUTER_RADIUS + 2, angle);
               return (
                 <line
                   key={`divider-${boundary}`}
@@ -247,7 +259,7 @@ function Gauge({ snapshot }) {
               const major = MAJOR_TICKS.has(tick);
               const medium = !major && tick % 20 === 0;
               const angle = tick * 0.9;
-              const innerRadius = GAUGE_BAND_OUTER_RADIUS - 1;
+              const innerRadius = major ? GAUGE_BAND_OUTER_RADIUS - 5 : GAUGE_BAND_OUTER_RADIUS - 3;
               const outerRadius = major ? 151 : medium ? 149 : 147;
               const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, innerRadius, angle);
               const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, outerRadius, angle);
