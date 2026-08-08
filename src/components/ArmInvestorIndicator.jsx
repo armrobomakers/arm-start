@@ -5,6 +5,7 @@ const CURRENT_ENDPOINT = "/api/arm-indicator/current";
 const GAUGE_CENTER = { x: 210, y: 165 };
 const GAUGE_RADIUS = 122;
 const NEEDLE_LENGTH = 116;
+const NEEDLE_VISIBLE_LENGTH = Math.min(80, NEEDLE_LENGTH);
 const GAUGE_SEGMENTS = [
   { from: -99, to: -61, color: "#225f35", zone: "strong_buy" },
   { from: -59, to: -21, color: "#4caf50", zone: "buy" },
@@ -101,13 +102,12 @@ function PanelHeading({ type, children }) {
   );
 }
 
-function IndicatorInfo({ snapshot }) {
+function IndicatorInfoBody({ snapshot }) {
   const score = Number(snapshot?.score) || 0;
   const currentZone = getCurrentZone(snapshot);
 
   return (
-    <aside className="arm-indicator-info-panel">
-      <PanelHeading type="info">Что это значит</PanelHeading>
+    <>
       <div className="arm-indicator-info-copy">
         <p>Индикатор сравнивает текущее состояние торговой системы ARM с её собственной историей результатов.</p>
         <p>Оценка <strong>{formatScore(score)}</strong> находится в зоне «{currentZone.label}». Отрицательная часть шкалы относится к пополнению, положительная — к фиксации прибыли.</p>
@@ -118,7 +118,62 @@ function IndicatorInfo({ snapshot }) {
         </span>
         <p>Используйте сигнал вместе с управлением рисками и собственным инвестиционным планом.</p>
       </div>
+    </>
+  );
+}
+
+function IndicatorInfo({ snapshot }) {
+  return (
+    <aside className="arm-indicator-info-panel arm-indicator-desktop-panel">
+      <PanelHeading type="info">Что это значит</PanelHeading>
+      <IndicatorInfoBody snapshot={snapshot} />
     </aside>
+  );
+}
+
+function LegendRows({ snapshot }) {
+  return (
+    <div className="arm-indicator-legend">
+      {ARM_INDICATOR_LEGEND.map((item, index) => {
+        const segment = GAUGE_SEGMENTS[index];
+        const isActive = snapshot?.zone === item.zone;
+        return (
+          <div
+            className={`arm-indicator-legend-row${isActive ? " is-active" : ""}`}
+            style={{ "--arm-zone-color": segment.color }}
+            key={item.zone}
+          >
+            <span className="arm-indicator-legend-dot" style={{ backgroundColor: segment.color }} />
+            <div className="arm-indicator-legend-copy">
+              <div className="arm-indicator-legend-line"><strong>{item.label}</strong><span>{item.range}</span></div>
+              <p>{item.description}</p>
+            </div>
+            {isActive ? <em>Текущая зона</em> : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function IndicatorLegend({ snapshot }) {
+  return (
+    <aside className="arm-indicator-legend-panel arm-indicator-desktop-panel" aria-label="Как читать шкалу">
+      <PanelHeading type="book">Как читать шкалу</PanelHeading>
+      <LegendRows snapshot={snapshot} />
+    </aside>
+  );
+}
+
+function MobileAccordion({ type, title, className, children }) {
+  return (
+    <details className={`arm-mobile-accordion ${className}`}>
+      <summary>
+        <PanelHeading type={type}>{title}</PanelHeading>
+        <span className="arm-mobile-accordion-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <div className="arm-mobile-accordion-body">{children}</div>
+    </details>
   );
 }
 
@@ -126,7 +181,7 @@ function Gauge({ snapshot }) {
   const score = Number(snapshot?.score) || 0;
   const currentZone = getCurrentZone(snapshot);
   const currentSegment = getCurrentSegment(snapshot);
-  const pointer = calculatePointerEndpoint(score, GAUGE_CENTER.x, GAUGE_CENTER.y, NEEDLE_LENGTH);
+  const pointer = calculatePointerEndpoint(score, GAUGE_CENTER.x, GAUGE_CENTER.y, NEEDLE_VISIBLE_LENGTH);
   const zoneStyle = { "--arm-zone-color": currentSegment.color };
 
   return (
@@ -141,7 +196,7 @@ function Gauge({ snapshot }) {
             {GAUGE_TICKS.map((tick) => {
               const major = MAJOR_TICKS.has(tick);
               const angle = tick * 0.9;
-              const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, major ? GAUGE_RADIUS - 16 : GAUGE_RADIUS - 10, angle);
+              const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, major ? GAUGE_RADIUS - 17 : GAUGE_RADIUS - 11, angle);
               const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS + (major ? 10 : 1), angle);
               const label = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS + 29, angle);
               return (
@@ -152,7 +207,7 @@ function Gauge({ snapshot }) {
               );
             })}
             <line className="arm-gauge-pointer" x1={GAUGE_CENTER.x} y1={GAUGE_CENTER.y} x2={pointer.x} y2={pointer.y} />
-            <circle className="arm-gauge-pointer-tip" cx={pointer.x} cy={pointer.y} r="3.8" />
+            <circle className="arm-gauge-pointer-tip" cx={pointer.x} cy={pointer.y} r="3" />
             <circle className="arm-indicator-needle-hub-ring" cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="12" />
             <circle className="arm-indicator-needle-hub" cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="8" />
           </svg>
@@ -167,34 +222,6 @@ function Gauge({ snapshot }) {
       <p className="arm-indicator-recommendation">{currentZone.description}</p>
       <span className="sr-only">Текущая зона: {currentZone.label}</span>
     </div>
-  );
-}
-
-function IndicatorLegend({ snapshot }) {
-  return (
-    <aside className="arm-indicator-legend-panel" aria-label="Как читать шкалу">
-      <PanelHeading type="book">Как читать шкалу</PanelHeading>
-      <div className="arm-indicator-legend">
-        {ARM_INDICATOR_LEGEND.map((item, index) => {
-          const segment = GAUGE_SEGMENTS[index];
-          const isActive = snapshot?.zone === item.zone;
-          return (
-            <div
-              className={`arm-indicator-legend-row${isActive ? " is-active" : ""}`}
-              style={{ "--arm-zone-color": segment.color }}
-              key={item.zone}
-            >
-              <span className="arm-indicator-legend-dot" style={{ backgroundColor: segment.color }} />
-              <div className="arm-indicator-legend-copy">
-                <div className="arm-indicator-legend-line"><strong>{item.label}</strong><span>{item.range}</span></div>
-                <p>{item.description}</p>
-              </div>
-              {isActive ? <em>Текущая зона</em> : null}
-            </div>
-          );
-        })}
-      </div>
-    </aside>
   );
 }
 
@@ -213,6 +240,12 @@ export function ArmInvestorIndicator() {
             <IndicatorInfo snapshot={snapshot} />
             <Gauge snapshot={snapshot} />
             <IndicatorLegend snapshot={snapshot} />
+            <MobileAccordion type="info" title="Что это значит" className="arm-mobile-info">
+              <IndicatorInfoBody snapshot={snapshot} />
+            </MobileAccordion>
+            <MobileAccordion type="book" title="Как читать шкалу" className="arm-mobile-legend">
+              <LegendRows snapshot={snapshot} />
+            </MobileAccordion>
           </div>
           <footer className="arm-indicator-footer">
             <span className="arm-indicator-data-date"><b aria-hidden="true">i</b>Данные по состоянию на: <strong>{formatDate(snapshot.dataAsOf)}</strong></span>
