@@ -7,11 +7,11 @@ const GAUGE_BAND_INNER_RADIUS = 100;
 const GAUGE_BAND_OUTER_RADIUS = 124;
 const NEEDLE_VISIBLE_LENGTH = 95;
 const GAUGE_SEGMENTS = [
-  { from: -100, to: -60, color: "#357f52", zone: "strong_buy" },
-  { from: -60, to: -20, color: "#6bcf66", zone: "buy" },
-  { from: -20, to: 20, color: "#cbd3de", zone: "neutral" },
-  { from: 20, to: 60, color: "#f4be4a", zone: "profit" },
-  { from: 60, to: 100, color: "#e76454", zone: "strong_profit" },
+  { from: -100, to: -60, color: "#4b9564", zone: "strong_buy" },
+  { from: -60, to: -20, color: "#78d873", zone: "buy" },
+  { from: -20, to: 20, color: "#d7dde6", zone: "neutral" },
+  { from: 20, to: 60, color: "#f6c75f", zone: "profit" },
+  { from: 60, to: 100, color: "#ef786a", zone: "strong_profit" },
 ];
 const GAUGE_ZONE_BOUNDARIES = [-60, -20, 20, 60];
 const GAUGE_SCALE_TICKS = Array.from({ length: 51 }, (_, index) => -100 + index * 4);
@@ -43,14 +43,6 @@ function describeBandSegment(centerX, centerY, innerRadius, outerRadius, startAn
     `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${innerStart.x.toFixed(3)} ${innerStart.y.toFixed(3)}`,
     "Z",
   ].join(" ");
-}
-
-function getGaugeColor(score) {
-  if (score < -60) return GAUGE_SEGMENTS[0].color;
-  if (score < -20) return GAUGE_SEGMENTS[1].color;
-  if (score <= 20) return GAUGE_SEGMENTS[2].color;
-  if (score < 60) return GAUGE_SEGMENTS[3].color;
-  return GAUGE_SEGMENTS[4].color;
 }
 
 function formatDate(value) {
@@ -239,8 +231,8 @@ function Gauge({ snapshot }) {
 
             {GAUGE_ZONE_BOUNDARIES.map((boundary) => {
               const angle = boundary * 0.9;
-              const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_INNER_RADIUS - 1, angle);
-              const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_OUTER_RADIUS + 2, angle);
+              const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_INNER_RADIUS, angle);
+              const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_OUTER_RADIUS, angle);
               return (
                 <line
                   key={`divider-${boundary}`}
@@ -259,8 +251,12 @@ function Gauge({ snapshot }) {
               const major = MAJOR_TICKS.has(tick);
               const medium = !major && tick % 20 === 0;
               const angle = tick * 0.9;
-              const innerRadius = major ? GAUGE_BAND_OUTER_RADIUS - 5 : GAUGE_BAND_OUTER_RADIUS - 3;
-              const outerRadius = major ? 151 : medium ? 149 : 147;
+              const innerRadius = major
+                ? GAUGE_BAND_INNER_RADIUS + 2
+                : medium
+                  ? GAUGE_BAND_INNER_RADIUS + 7
+                  : GAUGE_BAND_INNER_RADIUS + 10;
+              const outerRadius = GAUGE_BAND_OUTER_RADIUS - 2;
               const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, innerRadius, angle);
               const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, outerRadius, angle);
               const tickClass = major ? " is-major" : medium ? " is-medium" : "";
@@ -272,7 +268,7 @@ function Gauge({ snapshot }) {
                   x2={outer.x}
                   y2={outer.y}
                   className={`arm-indicator-scale-tick${tickClass}`}
-                  stroke={getGaugeColor(tick)}
+                  stroke="#173653"
                 />
               );
             })}
