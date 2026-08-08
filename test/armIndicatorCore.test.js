@@ -40,17 +40,17 @@ test("indicator UI keeps approved Russian labels and data states", () => {
   assert.match(source, /arm-indicator-center/);
   assert.match(source, /arm-indicator-legend-panel/);
   assert.match(source, /arm-indicator-status-pill/);
-  assert.match(source, /NEEDLE_LENGTH = 116/);
+  assert.match(source, /NEEDLE_VISIBLE_LENGTH = 95/);
+  assert.match(source, /GAUGE_SCALE_TICKS/);
   assert.match(source, /className="arm-gauge-pointer"/);
-  assert.match(source, /className="arm-gauge-pointer-tip"/);
+  assert.match(source, /arm-indicator-scale-tick/);
   assert.match(source, /arm-gauge-score-overlay/);
   assert.match(source, /arm-score-value/);
   assert.match(source, /arm-score-label/);
   assert.match(source, /--arm-zone-color/);
   assert.ok(source.indexOf('className="arm-gauge-pointer"') < source.indexOf('className="arm-indicator-needle-hub"'));
-  assert.ok(source.indexOf('className="arm-gauge-pointer-tip"') < source.indexOf('className="arm-indicator-needle-hub"'));
   assert.doesNotMatch(source, /className="arm-gauge-pointer"[^>]*transform|markerEnd|clipPath|mask=/s);
-  assert.match(source, /viewBox="0 0 420 215"/);
+  assert.match(source, /viewBox="0 0 420 205"/);
   assert.ok(source.indexOf("</svg>") < source.indexOf('className="arm-gauge-score-overlay"'));
   assert.doesNotMatch(source, /className="arm-indicator-score|score-caption/);
   assert.doesNotMatch(source, /arm-indicator-logo|brandLogo|arm-indicator-layout/);
@@ -70,6 +70,15 @@ test("indicator dashboard keeps the implementable three-panel hierarchy", () => 
   assert.match(css, /color-mix\(in srgb, var\(--arm-zone-color\)/);
   assert.doesNotMatch(css, /\.arm-indicator-card\s*\{[^}]*min-height/s);
   assert.doesNotMatch(css, /\.arm-gauge-pointer\s*\{[^}]*(?:transform|transform-origin|filter)/s);
+});
+
+test("reference gauge polish keeps segmented band and fine scale", () => {
+  const css = readFileSync(new URL("../src/styles/armIndicatorPublicPolish.css", import.meta.url), "utf8");
+  assert.match(css, /\.arm-indicator-gauge-track,[\s\S]*stroke-width:\s*24px/s);
+  assert.match(css, /\.arm-indicator-scale-tick/);
+  assert.match(css, /\.arm-indicator-scale-tick\.is-major/);
+  assert.match(css, /\.arm-gauge-pointer\s*\{[^}]*fill:\s*#182c45/s);
+  assert.match(css, /\.arm-gauge-score-overlay\s*\{[^}]*position:\s*static/s);
 });
 
 test("mobile layout separates score from the gauge and keeps readable sizing", () => {
