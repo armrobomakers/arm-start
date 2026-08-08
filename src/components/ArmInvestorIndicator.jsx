@@ -2,18 +2,17 @@ import { useEffect, useState } from "react";
 import { ARM_INDICATOR_TICKS, calculatePointerEndpoint } from "../lib/armIndicatorCore.js";
 
 const CURRENT_ENDPOINT = "/api/arm-indicator/current";
-const GAUGE_CENTER = { x: 210, y: 165 };
-const GAUGE_RADIUS = 122;
-const NEEDLE_LENGTH = 116;
-const NEEDLE_VISIBLE_LENGTH = Math.min(100, NEEDLE_LENGTH);
+const GAUGE_CENTER = { x: 210, y: 174 };
+const GAUGE_RADIUS = 112;
+const NEEDLE_VISIBLE_LENGTH = 95;
 const GAUGE_SEGMENTS = [
-  { from: -99, to: -61, color: "#225f35", zone: "strong_buy" },
-  { from: -59, to: -21, color: "#4caf50", zone: "buy" },
-  { from: -19, to: 19, color: "#a7b0bd", zone: "neutral" },
-  { from: 21, to: 59, color: "#e5a323", zone: "profit" },
-  { from: 61, to: 99, color: "#cc4b3e", zone: "strong_profit" },
+  { from: -100, to: -61.5, color: "#225f35", zone: "strong_buy" },
+  { from: -58.5, to: -21.5, color: "#4caf50", zone: "buy" },
+  { from: -18.5, to: 18.5, color: "#a7b0bd", zone: "neutral" },
+  { from: 21.5, to: 58.5, color: "#e5a323", zone: "profit" },
+  { from: 61.5, to: 100, color: "#cc4b3e", zone: "strong_profit" },
 ];
-const GAUGE_TICKS = Array.from({ length: 21 }, (_, index) => -100 + index * 10);
+const GAUGE_SCALE_TICKS = Array.from({ length: 51 }, (_, index) => -100 + index * 4);
 const MAJOR_TICKS = new Set(ARM_INDICATOR_TICKS);
 
 export const ARM_INDICATOR_LEGEND = [
@@ -34,6 +33,14 @@ function describeArc(centerX, centerY, radius, startAngle, endAngle) {
   const end = polarToCartesian(centerX, centerY, radius, startAngle);
   const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
   return `M ${start.x.toFixed(3)} ${start.y.toFixed(3)} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x.toFixed(3)} ${end.y.toFixed(3)}`;
+}
+
+function getGaugeColor(score) {
+  if (score <= -60) return GAUGE_SEGMENTS[0].color;
+  if (score <= -21) return GAUGE_SEGMENTS[1].color;
+  if (score <= 20) return GAUGE_SEGMENTS[2].color;
+  if (score <= 59) return GAUGE_SEGMENTS[3].color;
+  return GAUGE_SEGMENTS[4].color;
 }
 
 function formatDate(value) {
@@ -189,46 +196,67 @@ function Gauge({ snapshot }) {
   const pointerDistance = Math.hypot(pointerDx, pointerDy) || 1;
   const unitX = pointerDx / pointerDistance;
   const unitY = pointerDy / pointerDistance;
-  const headLength = 11;
-  const headHalfWidth = 5.5;
-  const headBaseX = pointer.x - unitX * headLength;
-  const headBaseY = pointer.y - unitY * headLength;
-  const headLeftX = headBaseX - unitY * headHalfWidth;
-  const headLeftY = headBaseY + unitX * headHalfWidth;
-  const headRightX = headBaseX + unitY * headHalfWidth;
-  const headRightY = headBaseY - unitX * headHalfWidth;
-  const shaftEndX = pointer.x - unitX * (headLength - 2);
-  const shaftEndY = pointer.y - unitY * (headLength - 2);
-  const arrowHeadPoints = `${pointer.x},${pointer.y} ${headLeftX},${headLeftY} ${headRightX},${headRightY}`;
+  const pointerHalfWidth = 6;
+  const pointerBaseLeft = {
+    x: GAUGE_CENTER.x - unitY * pointerHalfWidth,
+    y: GAUGE_CENTER.y + unitX * pointerHalfWidth,
+  };
+  const pointerBaseRight = {
+    x: GAUGE_CENTER.x + unitY * pointerHalfWidth,
+    y: GAUGE_CENTER.y - unitX * pointerHalfWidth,
+  };
+  const pointerPoints = `${pointer.x},${pointer.y} ${pointerBaseLeft.x},${pointerBaseLeft.y} ${pointerBaseRight.x},${pointerBaseRight.y}`;
   const zoneStyle = { "--arm-zone-color": currentSegment.color };
 
   return (
     <div className="arm-indicator-center" style={zoneStyle} data-zone={snapshot?.zone || "neutral"}>
       <div className="arm-indicator-gauge-wrap">
         <div className="arm-indicator-gauge-stage">
-          <svg className="arm-indicator-gauge-svg" viewBox="0 0 420 215" role="img" aria-label={`Шкала оценки ARM, значение ${score}`}>
+          <svg className="arm-indicator-gauge-svg" viewBox="0 0 420 205" role="img" aria-label={`Шкала оценки ARM, значение ${score}`}>
             <path className="arm-indicator-gauge-track" d={describeArc(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS, -90, 90)} />
             {GAUGE_SEGMENTS.map((segment) => (
-              <path className="arm-indicator-gauge-segment" d={describeArc(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS, segment.from * 0.9, segment.to * 0.9)} stroke={segment.color} key={segment.zone} />
+              <path
+                className="arm-indicator-gauge-segment"
+                d={describeArc(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS, segment.from * 0.9, segment.to * 0.9)}
+                stroke={segment.color}
+                key={segment.zone}
+              />
             ))}
-            {GAUGE_TICKS.map((tick) => {
+
+            {GAUGE_SCALE_TICKS.map((tick) => {
               const major = MAJOR_TICKS.has(tick);
+              const medium = !major && tick % 20 === 0;
               const angle = tick * 0.9;
-              const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, major ? GAUGE_RADIUS - 17 : GAUGE_RADIUS - 11, angle);
-              const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS + (major ? 10 : 1), angle);
-              const label = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS + 29, angle);
+              const innerRadius = major ? 128 : medium ? 133 : 137;
+              const outerRadius = major ? 150 : 149;
+              const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, innerRadius, angle);
+              const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, outerRadius, angle);
+              const tickClass = major ? " is-major" : medium ? " is-medium" : "";
               return (
-                <g key={tick} className={`arm-indicator-tick-group${major ? " is-major" : ""}`}>
-                  <line x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} className="arm-indicator-tick" />
-                  {major ? <text x={label.x} y={label.y} className="arm-indicator-tick-label">{tick > 0 ? `+${tick}` : tick}</text> : null}
-                </g>
+                <line
+                  key={tick}
+                  x1={inner.x}
+                  y1={inner.y}
+                  x2={outer.x}
+                  y2={outer.y}
+                  className={`arm-indicator-scale-tick${tickClass}`}
+                  stroke={getGaugeColor(tick)}
+                />
               );
             })}
-            <line className="arm-gauge-pointer" x1={GAUGE_CENTER.x} y1={GAUGE_CENTER.y} x2={shaftEndX} y2={shaftEndY} />
-            <polygon className="arm-gauge-pointer-head" points={arrowHeadPoints} fill="#142944" />
-            <circle className="arm-gauge-pointer-tip" cx={pointer.x} cy={pointer.y} r="3" />
-            <circle className="arm-indicator-needle-hub-ring" cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="12" />
-            <circle className="arm-indicator-needle-hub" cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="8" />
+
+            {ARM_INDICATOR_TICKS.map((tick) => {
+              const label = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, 84, tick * 0.9);
+              return (
+                <text x={label.x} y={label.y} className="arm-indicator-tick-label" key={`label-${tick}`}>
+                  {tick > 0 ? `+${tick}` : tick}
+                </text>
+              );
+            })}
+
+            <polygon className="arm-gauge-pointer" points={pointerPoints} />
+            <circle className="arm-indicator-needle-hub-ring" cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="10" />
+            <circle className="arm-indicator-needle-hub" cx={GAUGE_CENTER.x} cy={GAUGE_CENTER.y} r="6.5" />
           </svg>
           <div className="arm-gauge-score-overlay" aria-label={`Оценка ARM: ${score}`}>
             <div className="arm-score-value">{formatScore(score)}</div>
