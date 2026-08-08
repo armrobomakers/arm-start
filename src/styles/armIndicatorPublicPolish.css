@@ -51,41 +51,71 @@
   padding: 10px;
 }
 
+/* Reference-inspired gauge: segmented inner band, fine outer scale and tapered needle. */
 .arm-indicator-gauge-wrap {
-  width: min(100%, 520px);
+  width: min(100%, 540px);
 }
 
-/* Minor ticks stay visible but secondary; major zone boundaries remain dominant. */
-.arm-indicator-tick {
-  stroke: #1d3657;
-  stroke-width: 1.25;
-  opacity: .72;
+.arm-indicator-gauge-svg {
+  filter: drop-shadow(0 7px 12px rgba(20, 41, 68, .025));
 }
 
-.arm-indicator-tick-group.is-major .arm-indicator-tick {
-  stroke: #102a49;
+.arm-indicator-gauge-track,
+.arm-indicator-gauge-segment {
+  stroke-width: 24;
+  stroke-linecap: butt;
+}
+
+.arm-indicator-gauge-track {
+  stroke: #edf1f5;
+}
+
+.arm-indicator-scale-tick {
+  stroke-width: 1.05;
+  stroke-linecap: round;
+  opacity: .34;
+}
+
+.arm-indicator-scale-tick.is-medium {
+  stroke-width: 1.35;
+  opacity: .54;
+}
+
+.arm-indicator-scale-tick.is-major {
+  stroke: #173653 !important;
   stroke-width: 2.1;
   opacity: 1;
 }
 
-.arm-gauge-pointer {
-  stroke-width: 5.5;
+.arm-indicator-tick-label {
+  fill: #65758a;
+  font-size: 10.25px;
+  font-weight: 750;
+  letter-spacing: -.01em;
 }
 
-/* The short needle reads cleaner without a decorative endpoint dot. */
+.arm-gauge-pointer {
+  fill: #182c45;
+  stroke: none;
+  opacity: 1;
+  filter: drop-shadow(0 3px 2px rgba(15, 35, 64, .18));
+}
+
 .arm-gauge-pointer-tip {
-  opacity: 0;
+  display: none;
 }
 
 .arm-indicator-needle-hub-ring {
   fill: #fff;
-  stroke: rgba(20, 41, 68, .34);
-  stroke-width: 1.5;
-  filter: drop-shadow(0 3px 5px rgba(20, 41, 68, .12));
+  stroke: rgba(24, 44, 69, .24);
+  stroke-width: 1.6;
+  filter: drop-shadow(0 3px 5px rgba(20, 41, 68, .13));
 }
 
 .arm-indicator-needle-hub {
-  stroke-width: 2.5;
+  fill: #182c45;
+  stroke: #fff;
+  stroke-width: 2.2;
 }
 
 /* Score is intentionally outside the dial on every viewport. */
@@ -94,7 +124,7 @@
   top: auto;
   left: auto;
   transform: none;
-  margin-top: -36px;
+  margin-top: -22px;
   pointer-events: none;
   text-align: center;
 }
@@ -109,7 +139,7 @@
 }
 
 .arm-indicator-status-pill {
-  margin-top: 11px;
+  margin-top: 10px;
   padding: 6px 11px;
   font-size: 11.5px;
   box-shadow: 0 4px 12px color-mix(in srgb, var(--arm-zone-color) 7%, transparent);
@@ -193,7 +223,7 @@
   }
 
   .arm-indicator-gauge-wrap {
-    width: min(100%, 520px);
+    width: min(100%, 540px);
   }
 }
 
@@ -263,29 +293,32 @@
   }
 
   .arm-indicator-gauge-wrap {
-    width: min(100%, 338px);
+    width: min(100%, 350px);
   }
 
   .arm-indicator-gauge-track,
   .arm-indicator-gauge-segment {
-    stroke-width: 16;
+    stroke-width: 20;
   }
 
-  .arm-indicator-tick {
-    stroke-width: 1.1;
-    opacity: .72;
+  .arm-indicator-scale-tick {
+    stroke-width: 1;
   }
 
-  .arm-indicator-tick-group.is-major .arm-indicator-tick {
+  .arm-indicator-scale-tick.is-medium {
+    stroke-width: 1.2;
+  }
+
+  .arm-indicator-scale-tick.is-major {
     stroke-width: 1.8;
   }
 
   .arm-indicator-tick-label {
-    font-size: 9.2px;
+    font-size: 9.1px;
   }
 
   .arm-gauge-pointer {
-    stroke-width: 4.2;
+    filter: drop-shadow(0 2px 1.5px rgba(15, 35, 64, .15));
   }
 
   .arm-indicator-needle-hub-ring {
@@ -296,7 +329,7 @@
     position: static;
     top: auto;
     transform: none;
-    margin-top: -21px;
+    margin-top: -13px;
   }
 
   .arm-score-value {
@@ -484,11 +517,11 @@
   }
 
   .arm-indicator-gauge-wrap {
-    width: min(100%, 318px);
+    width: min(100%, 326px);
   }
 
   .arm-gauge-score-overlay {
-    margin-top: -19px;
+    margin-top: -10px;
   }
 
   .arm-score-value {
