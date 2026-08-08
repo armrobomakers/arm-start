@@ -44,6 +44,10 @@ test("indicator UI keeps approved Russian labels and data states", () => {
   assert.match(source, /GAUGE_SCALE_TICKS/);
   assert.match(source, /className="arm-gauge-pointer"/);
   assert.match(source, /arm-indicator-scale-tick/);
+  assert.match(source, /GAUGE_BAND_INNER_RADIUS \+ 10/);
+  assert.match(source, /GAUGE_BAND_OUTER_RADIUS - 2/);
+  assert.match(source, /stroke="#173653"/);
+  assert.doesNotMatch(source, /outerRadius = major \? 151/);
   assert.match(source, /arm-gauge-score-overlay/);
   assert.match(source, /arm-score-value/);
   assert.match(source, /arm-score-label/);
