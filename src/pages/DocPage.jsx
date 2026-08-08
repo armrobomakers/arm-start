@@ -25,7 +25,7 @@ export function DocPage({ slug }) {
     <main className={`doc-page${isOverview ? " doc-page-indicator" : ""}`}>
       {isOverview ? (
         <header className="arm-indicator-page-header">
-          <h1 id="arm-indicator-title">ИНДИКАТОР ИНВЕСТОРА</h1>
+          <h1 id="arm-indicator-title" style={{ fontWeight: 600 }}>ИНДИКАТОР ИНВЕСТОРА</h1>
           <p>На основе реальных данных торговой системы ARM</p>
         </header>
       ) : (
