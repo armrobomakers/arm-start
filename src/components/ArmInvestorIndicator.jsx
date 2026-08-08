@@ -5,6 +5,7 @@ const CURRENT_ENDPOINT = "/api/arm-indicator/current";
 const GAUGE_CENTER = { x: 210, y: 174 };
 const GAUGE_BAND_INNER_RADIUS = 100;
 const GAUGE_BAND_OUTER_RADIUS = 124;
+const GAUGE_LABEL_RADIUS = 145;
 const NEEDLE_VISIBLE_LENGTH = 95;
 const GAUGE_SEGMENTS = [
   { from: -100, to: -60, color: "#5fa978", zone: "strong_buy" },
@@ -287,9 +288,15 @@ function Gauge({ snapshot }) {
             })}
 
             {ARM_INDICATOR_TICKS.map((tick) => {
-              const label = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, 84, tick * 0.9);
+              const label = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_LABEL_RADIUS, tick * 0.9);
               return (
-                <text x={label.x} y={label.y} className="arm-indicator-tick-label" key={`label-${tick}`}>
+                <text
+                  x={label.x}
+                  y={label.y}
+                  className="arm-indicator-tick-label"
+                  style={{ fill: "#142944" }}
+                  key={`label-${tick}`}
+                >
                   {tick > 0 ? `+${tick}` : tick}
                 </text>
               );
