@@ -5,7 +5,7 @@ const CURRENT_ENDPOINT = "/api/arm-indicator/current";
 const GAUGE_CENTER = { x: 210, y: 165 };
 const GAUGE_RADIUS = 122;
 const NEEDLE_LENGTH = 116;
-const NEEDLE_VISIBLE_LENGTH = Math.min(80, NEEDLE_LENGTH);
+const NEEDLE_VISIBLE_LENGTH = Math.min(100, NEEDLE_LENGTH);
 const GAUGE_SEGMENTS = [
   { from: -99, to: -61, color: "#225f35", zone: "strong_buy" },
   { from: -59, to: -21, color: "#4caf50", zone: "buy" },
