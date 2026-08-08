@@ -19,6 +19,13 @@
   gap: 16px;
 }
 
+.arm-indicator-info-panel,
+.arm-indicator-legend-panel {
+  border-color: rgba(68, 111, 176, .12);
+  background: rgba(255, 255, 255, .88);
+  box-shadow: 0 8px 20px rgba(28, 58, 92, .03);
+}
+
 .arm-indicator-info-panel {
   padding: 15px;
 }
@@ -45,15 +52,43 @@
 }
 
 .arm-indicator-gauge-wrap {
-  width: min(100%, 488px);
+  width: min(100%, 520px);
 }
 
+/* Make every scale mark readable on green, gray, amber and red segments. */
+.arm-indicator-tick {
+  stroke: #1d3657;
+  stroke-width: 1.3;
+  opacity: .86;
+}
+
+.arm-indicator-tick-group.is-major .arm-indicator-tick {
+  stroke: #102a49;
+  stroke-width: 2.1;
+  opacity: 1;
+}
+
+.arm-gauge-pointer {
+  stroke-width: 6;
+}
+
+.arm-gauge-pointer-tip {
+  opacity: .96;
+}
+
+/* Score is intentionally outside the dial on every viewport. */
 .arm-gauge-score-overlay {
-  top: 52%;
+  position: static;
+  top: auto;
+  left: auto;
+  transform: none;
+  margin-top: -38px;
+  pointer-events: none;
+  text-align: center;
 }
 
 .arm-score-value {
-  font-size: clamp(52px, 4.45vw, 66px);
+  font-size: clamp(54px, 4.6vw, 68px);
   line-height: .9;
 }
 
@@ -62,7 +97,7 @@
 }
 
 .arm-indicator-status-pill {
-  margin-top: 1px;
+  margin-top: 8px;
   padding: 7px 12px;
   font-size: 12px;
 }
@@ -109,6 +144,10 @@
   padding-top: 10px;
 }
 
+.arm-mobile-accordion {
+  display: none;
+}
+
 @media (max-width: 1180px) {
   .arm-indicator-main-grid,
   .arm-dashboard-grid {
@@ -118,11 +157,7 @@
   }
 
   .arm-indicator-gauge-wrap {
-    width: min(100%, 500px);
-  }
-
-  .arm-gauge-score-overlay {
-    top: 48%;
+    width: min(100%, 520px);
   }
 }
 
@@ -144,7 +179,7 @@
 
   .arm-indicator-info-panel,
   .arm-indicator-legend-panel {
-    box-shadow: 0 8px 20px rgba(28, 58, 92, .04);
+    box-shadow: 0 6px 16px rgba(28, 58, 92, .025);
   }
 }
 
@@ -184,7 +219,7 @@
 
   .arm-indicator-main-grid,
   .arm-dashboard-grid {
-    gap: 11px;
+    gap: 10px;
   }
 
   .arm-indicator-center {
@@ -200,6 +235,14 @@
     stroke-width: 16;
   }
 
+  .arm-indicator-tick {
+    stroke-width: 1.15;
+  }
+
+  .arm-indicator-tick-group.is-major .arm-indicator-tick {
+    stroke-width: 1.8;
+  }
+
   .arm-indicator-tick-label {
     font-size: 9.2px;
   }
@@ -212,11 +255,11 @@
     position: static;
     top: auto;
     transform: none;
-    margin-top: -18px;
+    margin-top: -22px;
   }
 
   .arm-score-value {
-    font-size: clamp(48px, 13.6vw, 54px);
+    font-size: clamp(46px, 13.2vw, 52px);
   }
 
   .arm-score-label {
@@ -225,7 +268,18 @@
   }
 
   .arm-indicator-status-pill {
-    display: none;
+    display: inline-flex;
+    max-width: 100%;
+    margin-top: 8px;
+    padding: 7px 11px;
+    font-size: 11.5px;
+    line-height: 1.2;
+  }
+
+  .arm-indicator-status-pill span {
+    width: 19px;
+    height: 19px;
+    font-size: 11px;
   }
 
   .arm-indicator-signal-title {
@@ -241,15 +295,69 @@
     line-height: 1.38;
   }
 
-  .arm-indicator-info-panel,
-  .arm-indicator-legend-panel {
-    padding: 13px;
-    border-radius: 16px;
+  /* Mobile prioritizes the signal: supporting information is collapsed. */
+  .arm-indicator-desktop-panel {
+    display: none;
   }
 
-  .arm-panel-heading {
-    gap: 8px;
-    margin-bottom: 10px;
+  .arm-mobile-accordion {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgba(68, 111, 176, .14);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, .92);
+    box-shadow: 0 7px 18px rgba(28, 58, 92, .035);
+  }
+
+  .arm-mobile-info { grid-area: info; }
+  .arm-mobile-legend { grid-area: legend; }
+
+  .arm-mobile-accordion summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 13px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+
+  .arm-mobile-accordion summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .arm-mobile-accordion summary .arm-panel-heading {
+    flex: 1;
+    margin: 0;
+  }
+
+  .arm-mobile-accordion-chevron {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 50%;
+    background: #edf5ff;
+    color: #315f9f;
+    font-size: 18px;
+    line-height: 1;
+    transition: transform .18s ease;
+  }
+
+  .arm-mobile-accordion[open] .arm-mobile-accordion-chevron {
+    transform: rotate(180deg);
+  }
+
+  .arm-mobile-accordion-body {
+    padding: 0 13px 13px;
+    border-top: 1px solid rgba(68, 111, 176, .09);
+  }
+
+  .arm-mobile-accordion-body .arm-indicator-info-copy {
+    padding-top: 12px;
   }
 
   .arm-panel-icon {
@@ -288,6 +396,7 @@
 
   .arm-indicator-legend {
     gap: 6px;
+    padding-top: 12px;
   }
 
   .arm-indicator-legend-row {
@@ -326,11 +435,11 @@
   }
 
   .arm-gauge-score-overlay {
-    margin-top: -16px;
+    margin-top: -20px;
   }
 
   .arm-score-value {
-    font-size: clamp(46px, 13.2vw, 50px);
+    font-size: clamp(44px, 12.8vw, 49px);
   }
 
   .arm-indicator-signal-title {
@@ -338,8 +447,11 @@
     font-size: clamp(23px, 6.8vw, 25px);
   }
 
-  .arm-indicator-info-panel,
-  .arm-indicator-legend-panel {
-    padding: 12px;
+  .arm-mobile-accordion summary {
+    padding: 11px 12px;
+  }
+
+  .arm-mobile-accordion-body {
+    padding: 0 12px 12px;
   }
 }
