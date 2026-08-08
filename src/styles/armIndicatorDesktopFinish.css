@@ -1,5 +1,9 @@
 /* Final desktop composition pass based on the 1366px preview review. */
 
+.arm-indicator-page-header h1 {
+  font-weight: 600;
+}
+
 .arm-indicator-legend-line {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
