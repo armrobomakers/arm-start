@@ -4,6 +4,7 @@ import { ARM_INDICATOR_TICKS, calculatePointerEndpoint } from "../lib/armIndicat
 const CURRENT_ENDPOINT = "/api/arm-indicator/current";
 const GAUGE_CENTER = { x: 210, y: 174 };
 const GAUGE_RADIUS = 112;
+const GAUGE_BAND_OUTER_RADIUS = GAUGE_RADIUS + 12;
 const NEEDLE_VISIBLE_LENGTH = 95;
 const GAUGE_SEGMENTS = [
   { from: -100, to: -60, color: "#225f35", zone: "strong_buy" },
@@ -227,7 +228,7 @@ function Gauge({ snapshot }) {
             {GAUGE_ZONE_BOUNDARIES.map((boundary) => {
               const angle = boundary * 0.9;
               const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS - 13, angle);
-              const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_RADIUS + 13, angle);
+              const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, GAUGE_BAND_OUTER_RADIUS + 1, angle);
               return (
                 <line
                   key={`divider-${boundary}`}
@@ -246,8 +247,8 @@ function Gauge({ snapshot }) {
               const major = MAJOR_TICKS.has(tick);
               const medium = !major && tick % 20 === 0;
               const angle = tick * 0.9;
-              const innerRadius = major ? 123 : medium ? 125 : 127;
-              const outerRadius = major ? 151 : 149;
+              const innerRadius = GAUGE_BAND_OUTER_RADIUS - 1;
+              const outerRadius = major ? 151 : medium ? 149 : 147;
               const inner = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, innerRadius, angle);
               const outer = polarToCartesian(GAUGE_CENTER.x, GAUGE_CENTER.y, outerRadius, angle);
               const tickClass = major ? " is-major" : medium ? " is-medium" : "";
