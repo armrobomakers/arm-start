@@ -93,6 +93,10 @@ export const navGroups = [
     title: "Контроль",
     items: [{ slug: "errors", label: "Частые ошибки" }],
   },
+  {
+    title: "Сообщество",
+    items: [{ slug: "giveaway", label: "Розыгрыш" }],
+  },
 ];
 
 export const guideSections = [
