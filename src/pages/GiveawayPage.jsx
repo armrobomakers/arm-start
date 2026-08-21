@@ -39,7 +39,7 @@ export function GiveawayPage() {
         <div>
           <p className="giveaway-kicker"><span /> ARM COMMUNITY / COUPONS</p>
           <h1 id="giveaway-title"><span>Топ по</span> <em>купонам.</em></h1>
-          <p className="leaderboard-lead">Рейтинг участников розыгрыша. Данные обновляются один раз в день после утреннего отчёта.</p>
+          <p className="leaderboard-lead">Рейтинг участников розыгрыша. Данные обновляются 1 раз в сутки.</p>
         </div>
         <div className="leaderboard-dashboard" aria-label="Сводка рейтинга">
           <div className="dashboard-heading"><span>LIVE SNAPSHOT</span><i aria-hidden="true" /></div>
