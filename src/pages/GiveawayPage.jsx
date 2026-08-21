@@ -1,117 +1,67 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import brandLogo from "../assets/brand/logo.svg";
 
-const steps = [
-  {
-    number: "01",
-    title: "Присоединитесь",
-    text: "Откройте условия розыгрыша и подтвердите участие одним понятным действием.",
-  },
-  {
-    number: "02",
-    title: "Выполните условия",
-    text: "Следуйте короткому списку шагов. Всё важное собрано на одной странице.",
-  },
-  {
-    number: "03",
-    title: "Ждите результат",
-    text: "Победитель будет выбран честно, а результат появится в официальных каналах ARM.",
-  },
-];
+function formatDate(value) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "";
+  return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(date);
+}
+
+function formatNumber(value) {
+  return new Intl.NumberFormat("ru-RU").format(value);
+}
 
 export function GiveawayPage() {
+  const [state, setState] = useState({ status: "loading", data: null });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/leaderboard/current", { signal: controller.signal })
+      .then((response) => { if (!response.ok) throw new Error("leaderboard_unavailable"); return response.json(); })
+      .then((payload) => setState({ status: "ready", data: payload.data }))
+      .catch((error) => { if (error.name !== "AbortError") setState({ status: "empty", data: null }); });
+    return () => controller.abort();
+  }, []);
+
+  const data = state.data;
+  const rows = data?.rows || [];
+  const podium = rows.slice(0, 3);
+
   return (
     <main className="giveaway-page">
-      <div className="giveaway-noise" aria-hidden="true" />
       <header className="giveaway-header">
-        <Link className="giveaway-brand" to="/" aria-label="На главную ARM">
-          <img src={brandLogo} alt="ARM" />
-        </Link>
-        <Link className="giveaway-back" to="/">
-          Вернуться на сайт <span aria-hidden="true">↗</span>
-        </Link>
+        <Link className="giveaway-brand" to="/" aria-label="На главную ARM"><img src={brandLogo} alt="ARM" /></Link>
+        <Link className="giveaway-back" to="/">Вернуться на сайт <span aria-hidden="true">↗</span></Link>
       </header>
 
-      <section className="giveaway-hero" aria-labelledby="giveaway-title">
-        <div className="giveaway-hero-copy">
-          <p className="giveaway-kicker"><span /> ARM COMMUNITY / GIVEAWAY</p>
-          <h1 id="giveaway-title">
-            Твой шанс
-            <br />
-            <em>начинается здесь.</em>
-          </h1>
-          <p className="giveaway-lead">
-            Участвуйте в розыгрыше от ARM и оставайтесь ближе к сообществу,
-            которое строит будущее вместе.
-          </p>
-          <div className="giveaway-actions">
-            <a className="giveaway-primary" href="#how-to-join">
-              Как участвовать <span aria-hidden="true">↓</span>
-            </a>
-            <span className="giveaway-note">Условия участия внутри</span>
-          </div>
-        </div>
-
-        <div className="giveaway-visual" aria-label="Карточка розыгрыша" role="img">
-          <div className="giveaway-orbit giveaway-orbit-one" />
-          <div className="giveaway-orbit giveaway-orbit-two" />
-          <div className="giveaway-ticket">
-            <div className="giveaway-ticket-top">
-              <span className="giveaway-ticket-label">ARM / 2026</span>
-              <span className="giveaway-ticket-mark">✦</span>
-            </div>
-            <div className="giveaway-ticket-title">Твой<br /><strong>билет</strong><br />в удачу</div>
-            <div className="giveaway-ticket-bottom">
-              <span>COMMUNITY DRAW</span>
-              <span>ARM—01</span>
-            </div>
-          </div>
-          <span className="giveaway-spark giveaway-spark-one">✦</span>
-          <span className="giveaway-spark giveaway-spark-two">+</span>
-          <span className="giveaway-spark giveaway-spark-three">✦</span>
-        </div>
-      </section>
-
-      <section className="giveaway-strip" aria-label="Преимущества участия">
-        <div><strong>01</strong><span>Просто</span></div>
-        <div><strong>02</strong><span>Прозрачно</span></div>
-        <div><strong>03</strong><span>Для сообщества ARM</span></div>
-      </section>
-
-      <section className="giveaway-steps" id="how-to-join" aria-labelledby="how-to-join-title">
-        <div className="giveaway-section-heading">
-          <p className="giveaway-kicker"><span /> THE FORMULA</p>
-          <h2 id="how-to-join-title">Три шага до участия</h2>
-          <p>Никаких сложных форм и мелкого шрифта. Только понятные действия.</p>
-        </div>
-        <div className="giveaway-step-grid">
-          {steps.map((step) => (
-            <article className="giveaway-step-card" key={step.number}>
-              <span className="giveaway-step-number">{step.number}</span>
-              <h3>{step.title}</h3>
-              <p>{step.text}</p>
-              <span className="giveaway-card-arrow" aria-hidden="true">↘</span>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="giveaway-rules">
+      <section className="leaderboard-hero" aria-labelledby="giveaway-title">
         <div>
-          <p className="giveaway-kicker"><span /> IMPORTANT</p>
-          <h2>Условия и результат — открыто.</h2>
+          <p className="giveaway-kicker"><span /> ARM COMMUNITY / COUPONS</p>
+          <h1 id="giveaway-title">Топ по <em>купонам.</em></h1>
+          <p className="leaderboard-lead">Рейтинг участников розыгрыша. Данные обновляются один раз в день после утреннего отчёта.</p>
         </div>
-        <p>
-          Финальные условия, сроки и информация о призе будут опубликованы
-          здесь до старта розыгрыша. Следите за обновлениями ARM, чтобы ничего
-          не пропустить.
-        </p>
+        <div className="leaderboard-meta"><span>Сейчас в рейтинге</span><strong>{data ? formatNumber(data.participants) : "—"}</strong><small>{data ? `Обновлено ${formatDate(data.updatedAt)}` : "Загрузка данных"}</small></div>
       </section>
 
-      <footer className="giveaway-footer">
-        <span>ARM / AI ROBO MAKERS</span>
-        <Link to="/">На главную <span aria-hidden="true">↗</span></Link>
-      </footer>
+      {state.status === "loading" ? <div className="leaderboard-state">Загружаем рейтинг…</div> : null}
+      {state.status === "empty" ? <div className="leaderboard-state"><strong>Рейтинг пока недоступен.</strong><span>Данные появятся после ближайшего ежедневного обновления.</span></div> : null}
+
+      {data ? (
+        <section className="leaderboard-content" aria-label="Рейтинг участников">
+          <div className="leaderboard-stats">
+            <div><span>Всего купонов</span><strong>{formatNumber(data.totalCoupons)}</strong></div>
+            <div><span>Период с</span><strong>{data.periodStart.slice(0, 10).split("-").reverse().join(".")}</strong></div>
+            <div><span>Правило</span><strong>{formatNumber(data.couponStepAmount)} {data.currency} = 1</strong></div>
+          </div>
+          {podium.length > 0 ? <div className="leaderboard-podium">{podium.map((row, index) => <article className={`podium-card podium-${index + 1}`} key={`${row.name}-${row.rank}`}><span className="podium-rank">{String(index + 1).padStart(2, "0")}</span><h2>{row.name}</h2><strong>{formatNumber(row.coupons)} <small>купонов</small></strong></article>)}</div> : null}
+          <div className="leaderboard-table-wrap">
+            <div className="leaderboard-table-head"><span>Место</span><span>Участник</span><span>Купоны</span></div>
+            {rows.map((row) => <div className="leaderboard-row" key={`${row.name}-${row.rank}`}><span className="row-rank">{String(row.rank).padStart(2, "0")}</span><strong>{row.name}</strong><span className="row-coupons">{formatNumber(row.coupons)}</span></div>)}
+          </div>
+        </section>
+      ) : null}
+      <footer className="giveaway-footer"><span>ARM / AI ROBO MAKERS</span><Link to="/">На главную <span aria-hidden="true">↗</span></Link></footer>
     </main>
   );
 }
