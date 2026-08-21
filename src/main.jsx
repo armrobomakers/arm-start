@@ -5,6 +5,7 @@ import "./styles.css";
 import "./styles/armIndicator.css";
 import "./styles/armIndicatorPublicPolish.css";
 import "./styles/armIndicatorDesktopFinish.css";
+import "./styles/giveaway.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

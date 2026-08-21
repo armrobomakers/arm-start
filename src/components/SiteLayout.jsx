@@ -91,6 +91,9 @@ export function SiteLayout() {
             >
               Меню
             </button>
+            <Link className="giveaway-top-link" to="/giveaway">
+              Розыгрыш
+            </Link>
             <button
               className="support-link"
               type="button"
