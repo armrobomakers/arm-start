@@ -38,10 +38,18 @@ export function GiveawayPage() {
       <section className="leaderboard-hero" aria-labelledby="giveaway-title">
         <div>
           <p className="giveaway-kicker"><span /> ARM COMMUNITY / COUPONS</p>
-          <h1 id="giveaway-title">Топ по <em>купонам.</em></h1>
+          <h1 id="giveaway-title"><span>Топ по</span> <em>купонам.</em></h1>
           <p className="leaderboard-lead">Рейтинг участников розыгрыша. Данные обновляются один раз в день после утреннего отчёта.</p>
         </div>
-        <div className="leaderboard-meta"><span>Сейчас в рейтинге</span><strong>{data ? formatNumber(data.participants) : "—"}</strong><small>{data ? `Обновлено ${formatDate(data.updatedAt)}` : "Загрузка данных"}</small></div>
+        <div className="leaderboard-dashboard" aria-label="Сводка рейтинга">
+          <div className="dashboard-heading"><span>LIVE SNAPSHOT</span><i aria-hidden="true" /></div>
+          <div className="leaderboard-meta"><span>Сейчас в рейтинге</span><strong>{data ? formatNumber(data.participants) : "—"}</strong><small>{data ? `Обновлено ${formatDate(data.updatedAt)}` : "Загрузка данных"}</small></div>
+          <div className="dashboard-metrics">
+            <div><span>Купоны</span><strong>{data ? formatNumber(data.totalCoupons) : "—"}</strong></div>
+            <div><span>Период с</span><strong>{data ? data.periodStart.slice(0, 10).split("-").reverse().join(".") : "—"}</strong></div>
+            <div><span>Правило</span><strong>{data ? `${formatNumber(data.couponStepAmount)} ${data.currency}` : "—"}</strong></div>
+          </div>
+        </div>
       </section>
 
       {state.status === "loading" ? <div className="leaderboard-state">Загружаем рейтинг…</div> : null}
@@ -49,11 +57,6 @@ export function GiveawayPage() {
 
       {data ? (
         <section className="leaderboard-content" aria-label="Рейтинг участников">
-          <div className="leaderboard-stats">
-            <div><span>Всего купонов</span><strong>{formatNumber(data.totalCoupons)}</strong></div>
-            <div><span>Период с</span><strong>{data.periodStart.slice(0, 10).split("-").reverse().join(".")}</strong></div>
-            <div><span>Правило</span><strong>{formatNumber(data.couponStepAmount)} {data.currency} = 1</strong></div>
-          </div>
           {podium.length > 0 ? <div className="leaderboard-podium">{podium.map((row, index) => <article className={`podium-card podium-${index + 1}`} key={`${row.name}-${row.rank}`}><span className="podium-rank">{String(index + 1).padStart(2, "0")}</span><h2>{row.name}</h2><strong>{formatNumber(row.coupons)} <small>купонов</small></strong></article>)}</div> : null}
           <div className="leaderboard-table-wrap">
             <div className="leaderboard-table-head"><span>Место</span><span>Участник</span><span>Купоны</span></div>
