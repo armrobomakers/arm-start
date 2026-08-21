@@ -59,6 +59,7 @@ export const navGroups = [
       { slug: "arm-registration", label: "Регистрация в ARM" },
       { slug: "arm-topup", label: "Пополнение ARM" },
       { slug: "arm-subscription", label: "Подписка ARM" },
+      { slug: "giveaway", label: "Розыгрыш" },
     ],
   },
   {
@@ -92,10 +93,6 @@ export const navGroups = [
   {
     title: "Контроль",
     items: [{ slug: "errors", label: "Частые ошибки" }],
-  },
-  {
-    title: "Сообщество",
-    items: [{ slug: "giveaway", label: "Розыгрыш" }],
   },
 ];
 
