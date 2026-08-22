@@ -55,6 +55,10 @@ export default async function handler(request, response) {
       ok: true,
       dataAsOf: result.dataAsOf,
       points: result.points,
+      updatedAt: result.snapshot.updatedAt,
+      score: result.snapshot.score,
+      zone: result.snapshot.zone,
+      source: result.snapshot.source,
     });
   } catch (error) {
     const statusCode = error instanceof ArmIndicatorPublishError ? error.statusCode : 503;
