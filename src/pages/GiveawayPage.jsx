@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import brandLogo from "../assets/brand/logo.svg";
+import "../styles/giveaway-terms.css";
 
 function formatDate(value) {
   const date = new Date(value);
@@ -126,6 +127,58 @@ export function GiveawayPage() {
           </div>
         </section>
       ) : null}
+
+      <section className="giveaway-terms" aria-labelledby="giveaway-terms-title">
+        <div className="terms-heading">
+          <p className="giveaway-kicker"><span /> УСЛОВИЯ РОЗЫГРЫША</p>
+          <h2 id="giveaway-terms-title">Как участвовать <em>и что можно выиграть.</em></h2>
+          <p>Купоны начисляются за личные продажи подписок VIP и PREMIUM. Чем больше личных продаж, тем больше купонов участвует в финальном розыгрыше.</p>
+        </div>
+
+        <div className="terms-grid">
+          <article className="term-card">
+            <span className="term-number">01</span>
+            <h3>Кто участвует</h3>
+            <p>В программе учитываются только личные продажи подписок <strong>VIP</strong> и <strong>PREMIUM</strong>.</p>
+          </article>
+
+          <article className="term-card term-card-accent">
+            <span className="term-number">02</span>
+            <h3>Как начисляются купоны</h3>
+            <p><strong>500 USD личных продаж = 1 купон.</strong> VIP стоимостью 500 USD дает 1 купон, PREMIUM стоимостью 2 500 USD — 5 купонов.</p>
+          </article>
+
+          <article className="term-card">
+            <span className="term-number">03</span>
+            <h3>Когда состоится финал</h3>
+            <p>Накопление купонов началось <strong>4 февраля</strong>. Розыгрыш активируется при накоплении <strong>600 купонов</strong> — это 300 000 USD оборота.</p>
+          </article>
+
+          <article className="term-card">
+            <span className="term-number">04</span>
+            <h3>Как определят победителей</h3>
+            <p>Победители определяются <strong>в прямом эфире</strong>. Купоны автоматически учитываются в Telegram-боте.</p>
+          </article>
+        </div>
+
+        <div className="prizes-panel">
+          <article className="main-prize-card">
+            <span>Главный приз</span>
+            <h3>Новый Haval Jolion</h3>
+            <p>Современный технологичный кроссовер из салона в топовой комплектации.</p>
+            <strong>Стоимость — 35 000 USD</strong>
+          </article>
+
+          <article className="extra-prizes-card">
+            <span>Дополнительные призы</span>
+            <ul>
+              <li><strong>1</strong><span>MacBook Pro</span></li>
+              <li><strong>2</strong><span>iPhone 17 Pro Max</span></li>
+              <li><strong>3</strong><span>AirPods 3 Pro</span></li>
+            </ul>
+          </article>
+        </div>
+      </section>
 
       <footer className="giveaway-footer">
         <span>ARM</span>
