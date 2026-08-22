@@ -37,12 +37,13 @@ function formatPeriodStartLong(value) {
   const text = String(value || "").slice(0, 10);
   const date = new Date(`${text}T00:00:00Z`);
   if (!Number.isFinite(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("ru-RU", {
+  const formatted = new Intl.DateTimeFormat("ru-RU", {
     day: "numeric",
     month: "long",
     year: "numeric",
     timeZone: "UTC",
   }).format(date);
+  return formatted.replace(/\s*г\.$/, " года");
 }
 
 function couponWord(value) {
@@ -142,8 +143,18 @@ export function GiveawayPage() {
   const leaders = rows.filter((row) => row.rank <= 3);
   const periodStart = formatPeriodStart(data?.periodStart);
   const periodStartLong = formatPeriodStartLong(data?.periodStart);
-  const progress = Math.min(100, Math.max(0, Number(data?.progressPercent || 0)));
   const currency = data?.currency || "USD";
+  const totalCoupons = Number(data?.totalCoupons || 0);
+  const targetCoupons = Number(data?.targetCoupons || GIVEAWAY_CONFIG.targetCoupons);
+  const remainingCoupons = data?.remainingCoupons == null
+    ? Math.max(0, targetCoupons - totalCoupons)
+    : Number(data.remainingCoupons);
+  const progress = data?.progressPercent == null
+    ? (targetCoupons > 0 ? Math.min(100, (totalCoupons / targetCoupons) * 100) : 0)
+    : Math.min(100, Math.max(0, Number(data.progressPercent)));
+  const targetTurnover = data?.targetTurnover == null
+    ? targetCoupons * Number(data?.couponStepAmount || 0)
+    : Number(data.targetTurnover);
   const rules = data?.rules || {
     eligiblePlans: GIVEAWAY_CONFIG.eligiblePlans,
     planPricesUsd: GIVEAWAY_CONFIG.planPricesUsd,
@@ -215,7 +226,7 @@ export function GiveawayPage() {
             </small>
           </div>
           <div className="dashboard-metrics">
-            <div><span>Купоны</span><strong>{data ? formatNumber(data.totalCoupons) : "—"}</strong></div>
+            <div><span>Купоны</span><strong>{data ? formatNumber(totalCoupons) : "—"}</strong></div>
             <div><span>Период</span><strong>{data ? `с ${periodStart}` : "—"}</strong></div>
             <div>
               <span>Правило</span>
@@ -226,14 +237,14 @@ export function GiveawayPage() {
           <div className="giveaway-progress" aria-label="Прогресс до финального розыгрыша">
             <div className="giveaway-progress-head">
               <span>Прогресс до финала</span>
-              <strong>{data ? `${formatNumber(data.totalCoupons)} / ${formatNumber(data.targetCoupons)}` : "—"}</strong>
+              <strong>{data ? `${formatNumber(totalCoupons)} / ${formatNumber(targetCoupons)}` : "—"}</strong>
             </div>
             <div className="giveaway-progress-track" aria-hidden="true">
               <i style={{ width: `${progress}%` }} />
             </div>
             <div className="giveaway-progress-foot">
-              <span>{data ? `${progress.toLocaleString("ru-RU")}% пути` : "—"}</span>
-              <strong>{data ? `Осталось ${formatNumber(data.remainingCoupons)} ${couponWord(data.remainingCoupons)}` : "—"}</strong>
+              <span>{data ? `${Number(progress.toFixed(1)).toLocaleString("ru-RU")}% пути` : "—"}</span>
+              <strong>{data ? `Осталось ${formatNumber(remainingCoupons)} ${couponWord(remainingCoupons)}` : "—"}</strong>
             </div>
           </div>
         </div>
@@ -364,7 +375,7 @@ export function GiveawayPage() {
           <article className="term-card">
             <span className="term-number">03</span>
             <h3>Когда состоится финал</h3>
-            <p>Накопление купонов началось <strong>{periodStartLong}</strong>. Розыгрыш активируется при накоплении <strong>{data ? `${formatNumber(data.targetCoupons)} купонов` : `${formatNumber(GIVEAWAY_CONFIG.targetCoupons)} купонов`}</strong>{data ? ` — это ${formatNumber(data.targetTurnover)} ${currency} оборота.` : "."}</p>
+            <p>Накопление купонов началось <strong>{periodStartLong}</strong>. Розыгрыш активируется при накоплении <strong>{formatNumber(targetCoupons)} купонов</strong>{data ? ` — это ${formatNumber(targetTurnover)} ${currency} оборота.` : "."}</p>
           </article>
 
           <article className="term-card">
