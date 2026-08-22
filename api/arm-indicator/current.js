@@ -23,6 +23,7 @@ export default async function handler(request, response) {
       });
     }
 
+    response.setHeader("X-ARM-Indicator-Source", snapshot.source || "unknown");
     return sendJson(response, 200, toPublicCurrentResponse(snapshot));
   } catch (error) {
     return sendJson(response, 503, {
