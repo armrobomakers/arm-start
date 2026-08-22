@@ -19,7 +19,8 @@ function formatNumber(value) {
 }
 
 function formatParticipantName(value) {
-  return String(value || "").replace(/\s*\(\d+\)\s*$/, "").trim();
+  const cleanName = String(value || "").replace(/\s*\(\d+\)\s*$/, "").trim();
+  return cleanName.split(/\s+/).filter(Boolean).slice(0, 2).join(" ");
 }
 
 function couponWord(value) {
