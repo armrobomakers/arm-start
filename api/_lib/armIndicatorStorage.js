@@ -6,8 +6,20 @@ const LOCAL_STORAGE_PATH = path.join(process.cwd(), ".local-data", "arm-indicato
 const BLOB_STORAGE_PATH = "arm-indicator/state.json";
 
 function resolveStorageMode() {
-  const mode = (process.env.ARM_INDICATOR_STORAGE || "local").toLowerCase();
-  return ["blob", "none"].includes(mode) ? mode : "local";
+  const configured = (process.env.ARM_INDICATOR_STORAGE || "").toLowerCase();
+
+  // Production must use durable storage. An explicit `none` is kept only for
+  // isolated tests; `local` is never accepted in Vercel Production because a
+  // serverless filesystem is not a durable indicator state store.
+  if (process.env.VERCEL_ENV === "production") {
+    return configured === "none" ? "none" : "blob";
+  }
+
+  if (["blob", "none", "local"].includes(configured)) {
+    return configured;
+  }
+
+  return "local";
 }
 
 async function readLocalState() {
