@@ -3,7 +3,7 @@ import {
   buildIndicatorSnapshot,
   normalizeSnapshotForTransport,
 } from "../../src/lib/armIndicatorCore.js";
-import { readIndicatorState, writeIndicatorState } from "./armIndicatorStorage.js";
+import { getStorageMode, readIndicatorState, writeIndicatorState } from "./armIndicatorStorage.js";
 import {
   MyfxbookAccountNotFoundError,
   MyfxbookApiError,
@@ -18,11 +18,13 @@ import { applyDynamicStale } from "./armIndicatorPublish.js";
 const MAX_HISTORY_LENGTH = 180;
 
 function resolveDataSource() {
-  return (process.env.ARM_INDICATOR_DATA_SOURCE || "fixture").toLowerCase();
-}
+  // Production is publish-only from the read-only MT5 worker. Never silently
+  // fall back to fixtures or the legacy Myfxbook sync path there.
+  if (process.env.VERCEL_ENV === "production") {
+    return "mt5-vps";
+  }
 
-function resolveStorageMode() {
-  return (process.env.ARM_INDICATOR_STORAGE || "local").toLowerCase();
+  return (process.env.ARM_INDICATOR_DATA_SOURCE || "fixture").toLowerCase();
 }
 
 function upsertHistory(history, snapshot) {
@@ -64,7 +66,7 @@ export async function loadIndicatorState({ days = 90 } = {}) {
       current: normalizeSnapshotForTransport(state.current),
       history: Array.isArray(state.history) ? state.history.slice(-days).map(normalizeSnapshotForTransport) : [],
       source: state.current.source || dataSource,
-      storageMode: resolveStorageMode(),
+      storageMode: getStorageMode(),
       persisted: true,
     };
   }
@@ -75,7 +77,7 @@ export async function loadIndicatorState({ days = 90 } = {}) {
       current: normalizeSnapshotForTransport(current),
       history: createFixtureHistory(days),
       source: "fixture",
-      storageMode: resolveStorageMode(),
+      storageMode: getStorageMode(),
       persisted: false,
     };
   }
@@ -84,7 +86,7 @@ export async function loadIndicatorState({ days = 90 } = {}) {
     current: null,
     history: [],
     source: dataSource,
-    storageMode: resolveStorageMode(),
+    storageMode: getStorageMode(),
     persisted: false,
   };
 }
@@ -123,7 +125,25 @@ export async function loadPublicHistory(days = 90) {
 
 export async function syncIndicatorState({ referenceDate = new Date(), days = 365 } = {}) {
   const dataSource = resolveDataSource();
-  const storageMode = resolveStorageMode();
+  const storageMode = getStorageMode();
+
+  if (dataSource === "mt5-vps") {
+    // Legacy cron calls must never overwrite an MT5-published snapshot. In
+    // publish-only mode this endpoint is read-only and returns persisted state.
+    const persistedState = await readIndicatorState();
+    if (!persistedState?.current) {
+      throw new Error("MT5-published indicator state is not available yet");
+    }
+
+    return {
+      current: normalizeSnapshotForTransport(persistedState.current),
+      history: Array.isArray(persistedState.history)
+        ? persistedState.history.slice(-days).map(normalizeSnapshotForTransport)
+        : [],
+      diagnostics: persistedState.diagnostics || { source: "windows-mt5-vps" },
+      persisted: true,
+    };
+  }
 
   if (dataSource === "fixture") {
     const current = createFixtureSnapshot(referenceDate);
