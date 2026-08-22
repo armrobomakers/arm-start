@@ -18,7 +18,9 @@ from .publisher import canonical_payload, sign_payload
 from .seed import validate_seed
 
 
-PREVIEW_HOST = "arm-start-git-feat-arm-indi-de995a-armrobomakers-7944s-projects.vercel.app"
+PRODUCTION_HOST = "arm-start.vercel.app"
+PREVIEW_PREFIX = "arm-start-"
+PREVIEW_SUFFIX = "-armrobomakers-7944s-projects.vercel.app"
 STATE_NAME = "publish-state.json"
 
 
@@ -53,10 +55,18 @@ def _json(body: bytes) -> dict:
     try:
         result = json.loads(body.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise DailySyncError("Preview returned invalid JSON") from exc
+        raise DailySyncError("Publish target returned invalid JSON") from exc
     if not isinstance(result, dict):
-        raise DailySyncError("Preview returned a non-object JSON response")
+        raise DailySyncError("Publish target returned a non-object JSON response")
     return result
+
+
+def _header_value(headers: dict[str, str], name: str) -> str:
+    target = name.lower()
+    for key, value in headers.items():
+        if key.lower() == target:
+            return str(value)
+    return ""
 
 
 def _log_line(handle, message: str) -> None:
@@ -76,13 +86,16 @@ def _load_state(path: Path) -> dict:
     return value
 
 
-def _allowed_preview(url: str) -> bool:
+def _allowed_publish_url(url: str) -> bool:
     try:
         from urllib.parse import urlparse
         parsed = urlparse(url)
     except ValueError:
         return False
-    return parsed.scheme == "https" and parsed.netloc == PREVIEW_HOST and parsed.path == "/api/arm-indicator/publish"
+
+    host = parsed.netloc.lower()
+    approved_host = host == PRODUCTION_HOST or (host.startswith(PREVIEW_PREFIX) and host.endswith(PREVIEW_SUFFIX))
+    return parsed.scheme == "https" and approved_host and parsed.path == "/api/arm-indicator/publish" and not parsed.params and not parsed.query and not parsed.fragment
 
 
 def _canonical_for_seed(config: Config, seed: list[dict]) -> tuple[dict, bytes, str]:
@@ -108,10 +121,10 @@ def run_daily_sync(config: Config) -> dict[str, object]:
         _log_line(log, f"START UTC: {started}")
         _log_line(log, f"WORKER USER: {os.environ.get('USERNAME', '-')}")
         try:
-            if not _allowed_preview(config.publish_url):
-                raise DailySyncError("publish URL is not the approved Preview host")
-            if not config.publish_secret or not config.bypass_secret:
-                raise DailySyncError("publish secrets are not configured")
+            if not _allowed_publish_url(config.publish_url):
+                raise DailySyncError("publish URL is not an approved ARM indicator target")
+            if not config.publish_secret:
+                raise DailySyncError("publish secret is not configured")
 
             doctor_result = doctor(config, MT5Adapter(config.mt5_terminal_path, config.expected_login, config.expected_server, config.expected_company))
             doctor_ok = all(value != "FAIL" and not (key == "trade_allowed" and value is True) for key, value in doctor_result.items())
@@ -138,14 +151,16 @@ def run_daily_sync(config: Config) -> dict[str, object]:
             _log_line(log, f"DAILYGAIN BEFORE/AFTER: {result.get('before')} / {len(seed)}")
             _log_line(log, f"DATA AS OF: {seed[-1]['date']}")
             _log_line(log, f"PAYLOAD HASH: {payload_hash[:12]}")
+            _log_line(log, f"PUBLISH TARGET: {config.publish_url}")
 
             current_url = config.publish_url.rsplit("/publish", 1)[0] + "/current"
-            bypass_headers = {"x-vercel-protection-bypass": config.bypass_secret}
+            bypass_headers = {"x-vercel-protection-bypass": config.bypass_secret} if config.bypass_secret else {}
             current_status, current_headers, current_body = _request(current_url, headers=bypass_headers)
             if current_status != 200:
-                raise DailySyncError(f"Preview current preflight HTTP {current_status}")
+                raise DailySyncError(f"publish target current preflight HTTP {current_status}")
             current = _json(current_body)
-            date_header = current_headers.get("Date")
+            current_source = _header_value(current_headers, "x-arm-indicator-source")
+            date_header = _header_value(current_headers, "date")
             if date_header:
                 from email.utils import parsedate_to_datetime
                 offset = abs(datetime.now(timezone.utc).timestamp() - parsedate_to_datetime(date_header).timestamp())
@@ -154,18 +169,37 @@ def run_daily_sync(config: Config) -> dict[str, object]:
                 _log_line(log, f"CLOCK OFFSET: {offset:.3f}")
 
             previous_hash = state.get("lastSuccessfulPayloadHash")
-            if previous_hash == payload_hash or (not previous_hash and current.get("dataAsOf") == seed[-1]["date"]):
+            same_target = state.get("lastSuccessfulPublishUrl") == config.publish_url
+            same_snapshot = bool(state.get("lastSuccessfulSnapshotUpdatedAt")) and current.get("updatedAt") == state.get("lastSuccessfulSnapshotUpdatedAt")
+            verified_current = current_source == "mt5-vps" and current.get("dataAsOf") == seed[-1]["date"] and current.get("stale") is False
+            if same_target and previous_hash == payload_hash and same_snapshot and verified_current:
                 finished = _now()
-                state.update({"lastSuccessfulDataAsOf": seed[-1]["date"], "lastSuccessfulPayloadHash": payload_hash, "lastSuccessfulPublishedAtUtc": state.get("lastSuccessfulPublishedAtUtc") or current.get("updatedAt"), "lastHttpStatus": 200, "lastVerificationStatus": "OK", "lastRunFinishedAtUtc": finished, "lastRunResult": "NO_CHANGE"})
+                state.update({
+                    "lastSuccessfulDataAsOf": seed[-1]["date"],
+                    "lastSuccessfulPayloadHash": payload_hash,
+                    "lastSuccessfulPublishUrl": config.publish_url,
+                    "lastSuccessfulPublishedAtUtc": state.get("lastSuccessfulPublishedAtUtc") or current.get("updatedAt"),
+                    "lastSuccessfulSnapshotUpdatedAt": current.get("updatedAt"),
+                    "lastHttpStatus": 200,
+                    "lastVerificationStatus": "OK",
+                    "lastRunFinishedAtUtc": finished,
+                    "lastRunResult": "NO_CHANGE",
+                })
                 _atomic_json(state_path, state)
                 _log_line(log, "NO_CHANGE")
                 return {"result": "NO_CHANGE", "data_as_of": seed[-1]["date"], "hash": payload_hash[:12], "points": len(seed), "publish_requests": 0}
 
             timestamp = str(int(datetime.now(timezone.utc).timestamp()))
-            headers = {"content-type": "application/json", "x-arm-timestamp": timestamp, "x-arm-signature": sign_payload(config.publish_secret, timestamp, raw_body), "x-vercel-protection-bypass": config.bypass_secret}
+            headers = {
+                "content-type": "application/json",
+                "x-arm-timestamp": timestamp,
+                "x-arm-signature": sign_payload(config.publish_secret, timestamp, raw_body),
+            }
+            if config.bypass_secret:
+                headers["x-vercel-protection-bypass"] = config.bypass_secret
             status, _, body = _request(config.publish_url, method="POST", headers=headers, body=raw_body)
             response = _json(body)
-            _log_line(log, f"PUBLISH REQUESTS SENT: 1")
+            _log_line(log, "PUBLISH REQUESTS SENT: 1")
             _log_line(log, f"HTTP STATUS: {status}")
             if status != 200 or response.get("ok") is not True:
                 finished = _now()
@@ -174,13 +208,43 @@ def run_daily_sync(config: Config) -> dict[str, object]:
                 _log_line(log, "FAILED")
                 raise DailySyncError(f"publish HTTP {status}: {response.get('error')} {response.get('message')}")
 
-            verify_status, _, verify_body = _request(current_url, headers=bypass_headers)
+            verify_status, verify_headers, verify_body = _request(current_url, headers=bypass_headers)
             verification = _json(verify_body)
-            verification_ok = verify_status == 200 and verification.get("dataAsOf") == seed[-1]["date"] and verification.get("stale") is False
+            verify_source = _header_value(verify_headers, "x-arm-indicator-source")
+            verification_ok = (
+                verify_status == 200
+                and response.get("source") == "mt5-vps"
+                and verify_source == "mt5-vps"
+                and response.get("dataAsOf") == seed[-1]["date"]
+                and verification.get("dataAsOf") == seed[-1]["date"]
+                and verification.get("updatedAt") == response.get("updatedAt")
+                and verification.get("score") == response.get("score")
+                and verification.get("zone") == response.get("zone")
+                and verification.get("stale") is False
+            )
             finished = _now()
-            state.update({"lastSuccessfulDataAsOf": seed[-1]["date"], "lastSuccessfulPayloadHash": payload_hash, "lastSuccessfulPublishedAtUtc": finished, "lastHttpStatus": status, "lastVerificationStatus": "OK" if verification_ok else "FAILED", "lastRunFinishedAtUtc": finished, "lastRunResult": "PUBLISHED" if verification_ok else "VERIFICATION_FAILED"})
+            if verification_ok:
+                state.update({
+                    "lastSuccessfulDataAsOf": seed[-1]["date"],
+                    "lastSuccessfulPayloadHash": payload_hash,
+                    "lastSuccessfulPublishUrl": config.publish_url,
+                    "lastSuccessfulPublishedAtUtc": finished,
+                    "lastSuccessfulSnapshotUpdatedAt": response.get("updatedAt"),
+                    "lastHttpStatus": status,
+                    "lastVerificationStatus": "OK",
+                    "lastRunFinishedAtUtc": finished,
+                    "lastRunResult": "PUBLISHED",
+                })
+            else:
+                state.update({
+                    "lastHttpStatus": status,
+                    "lastVerificationStatus": "FAILED",
+                    "lastRunFinishedAtUtc": finished,
+                    "lastRunResult": "VERIFICATION_FAILED",
+                })
             _atomic_json(state_path, state)
             _log_line(log, f"GET VERIFICATION STATUS: {verify_status}")
+            _log_line(log, f"GET VERIFICATION SOURCE: {verify_source or '-'}")
             _log_line(log, f"SCORE: {verification.get('score')}")
             _log_line(log, f"ZONE: {verification.get('zone')}")
             if not verification_ok:
