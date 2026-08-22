@@ -19,7 +19,8 @@ function formatNumber(value) {
 }
 
 function formatParticipantName(value) {
-  return String(value || "").replace(/\s*\(\d+\)\s*$/, "").trim();
+  const cleanName = String(value || "").replace(/\s*\(\d+\)\s*$/, "").trim();
+  return cleanName.split(/\s+/).filter(Boolean).slice(0, 2).join(" ");
 }
 
 function couponWord(value) {
@@ -68,13 +69,13 @@ export function GiveawayPage() {
 
       <section className="leaderboard-hero" aria-labelledby="giveaway-title">
         <div>
-          <p className="giveaway-kicker"><span /> ARM COMMUNITY / COUPONS</p>
+          <p className="giveaway-kicker"><span /> СООБЩЕСТВО ARM / КУПОНЫ</p>
           <h1 id="giveaway-title"><span>Топ по</span> <em>купонам.</em></h1>
           <p className="leaderboard-lead">Рейтинг участников розыгрыша. Данные обновляются 1 раз в сутки.</p>
         </div>
 
         <div className="leaderboard-dashboard" aria-label="Сводка рейтинга">
-          <div className="dashboard-heading"><span>LIVE SNAPSHOT</span><i aria-hidden="true" /></div>
+          <div className="dashboard-heading"><span>АКТУАЛЬНЫЕ ДАННЫЕ</span><i aria-hidden="true" /></div>
           <div className="leaderboard-meta">
             <span>Участников</span>
             <strong>{data ? formatNumber(data.participants) : "—"}</strong>
@@ -124,7 +125,7 @@ export function GiveawayPage() {
       ) : null}
 
       <footer className="giveaway-footer">
-        <span>ARM / AI ROBO MAKERS</span>
+        <span>ARM</span>
         <Link to="/">На главную <span aria-hidden="true">↗</span></Link>
       </footer>
     </main>
