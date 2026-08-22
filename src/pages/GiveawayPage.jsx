@@ -164,9 +164,9 @@ export function GiveawayPage() {
         <div className="prizes-panel">
           <article className="main-prize-card">
             <span>Главный приз</span>
-            <h3>Новый Haval Jolion</h3>
-            <p>Современный технологичный кроссовер из салона в топовой комплектации.</p>
-            <strong>Стоимость — 35 000 USD</strong>
+            <h3>Автомобиль</h3>
+            <p>Главный приз — автомобиль в эквиваленте 35 000 USD.</p>
+            <strong>Эквивалент — 35 000 USD</strong>
           </article>
 
           <article className="extra-prizes-card">
