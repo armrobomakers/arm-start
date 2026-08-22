@@ -1,9 +1,11 @@
 import csv
+import inspect
 from datetime import date, datetime, timezone
 from types import SimpleNamespace
 
 import pytest
 
+import arm_mt5_worker.incremental as incremental
 from arm_mt5_worker.incremental import NativeExportError, _merge_ticket_rows, _tick_row, incremental_refresh
 
 
@@ -58,6 +60,11 @@ def test_tick_lookup_rejects_future_and_uses_progressive_windows():
     assert row["source"] == "tick"
     assert row["bid"] == "1"
     assert adapter.calls
+
+
+def test_cashflow_floating_valuation_passes_symbol_metadata():
+    source = inspect.getsource(incremental.incremental_refresh)
+    assert "_floating(adapter, moment, states, metadata, cash_prices, cash_conversions" in source
 
 
 def test_incremental_span_over_31_days_fails_closed(tmp_path):
