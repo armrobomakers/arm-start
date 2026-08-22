@@ -234,7 +234,7 @@ def incremental_refresh(directory: Path, seed_path: Path, adapter, *, now: datet
     for flow in flows:
         moment = _event_time(flow)
         before = sum(_number(row.get("profit")) if row.get("type_name", "").endswith("BALANCE") else sum(_number(row.get(key)) for key in ("profit", "commission", "swap", "fee")) for row in ordered if _event_time(row) < moment)
-        floating = _floating(adapter, moment, states, cash_prices, cash_conversions, flow_id=str(flow["ticket"]))
+        floating = _floating(adapter, moment, states, metadata, cash_prices, cash_conversions, flow_id=str(flow["ticket"]))
         flow_equity[flow["ticket"]] = before + floating
     returns = []
     for day in days[1:]:
