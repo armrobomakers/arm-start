@@ -1,0 +1,12 @@
+@media (max-width: 620px) {
+  .dashboard-metrics {
+    grid-template-columns: minmax(0, .78fr) minmax(0, 1.18fr) minmax(0, 1.12fr);
+  }
+
+  .dashboard-metrics > div:nth-child(2) strong,
+  .dashboard-metrics > div:nth-child(3) strong {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+}
