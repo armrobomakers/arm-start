@@ -84,7 +84,10 @@ export function GiveawayPage() {
           <div className="dashboard-metrics">
             <div><span>Купоны</span><strong>{data ? formatNumber(data.totalCoupons) : "—"}</strong></div>
             <div><span>Период</span><strong>{data ? `с ${periodStart}` : "—"}</strong></div>
-            <div><span>Правило</span><strong>{data ? `${formatNumber(data.couponStepAmount)} ${data.currency} = 1 купон` : "—"}</strong></div>
+            <div>
+              <span>Правило</span>
+              <strong>{data ? <>{formatNumber(data.couponStepAmount)} {data.currency}<br />= 1 купон</> : "—"}</strong>
+            </div>
           </div>
         </div>
       </section>
