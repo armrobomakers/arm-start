@@ -96,6 +96,56 @@ test("published snapshot and state use MT5 source metadata", async () => {
   }
 });
 
+test("publish endpoint returns exact snapshot metadata for GET verification", async () => {
+  const previous = {
+    storage: process.env.ARM_INDICATOR_STORAGE,
+    secret: process.env.ARM_INDICATOR_PUBLISH_SECRET,
+  };
+  const secret = "p".repeat(32);
+  process.env.ARM_INDICATOR_STORAGE = "none";
+  process.env.ARM_INDICATOR_PUBLISH_SECRET = secret;
+  try {
+    const payload = {
+      version: 1,
+      systemId: "11020435",
+      accountName: "ARM TICKMILL VIP FUND",
+      fetchedAt: "2026-08-21T00:00:00.000Z",
+      dailyGain: [
+        { date: "2026-08-19", value: 1.25 },
+        { date: "2026-08-20", value: -0.5 },
+        { date: "2026-08-21", value: 0.75 },
+      ],
+    };
+    const rawBody = JSON.stringify(payload);
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const response = {
+      headers: {},
+      setHeader(key, value) { this.headers[key] = value; },
+      end(value) { this.body = JSON.parse(value); },
+    };
+    await handler({
+      method: "POST",
+      body: rawBody,
+      headers: {
+        "x-arm-timestamp": timestamp,
+        "x-arm-signature": createPublishSignature(secret, timestamp, rawBody),
+      },
+    }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.ok, true);
+    assert.equal(response.body.source, "mt5-vps");
+    assert.equal(response.body.dataAsOf, "2026-08-21");
+    assert.equal(typeof response.body.updatedAt, "string");
+    assert.equal(typeof response.body.score, "number");
+    assert.equal(typeof response.body.zone, "string");
+  } finally {
+    if (previous.storage === undefined) delete process.env.ARM_INDICATOR_STORAGE;
+    else process.env.ARM_INDICATOR_STORAGE = previous.storage;
+    if (previous.secret === undefined) delete process.env.ARM_INDICATOR_PUBLISH_SECRET;
+    else process.env.ARM_INDICATOR_PUBLISH_SECRET = previous.secret;
+  }
+});
+
 test("active publish path contains no legacy Myfxbook VPS source marker", () => {
   const source = readFileSync(new URL("../api/_lib/armIndicatorPublish.js", import.meta.url), "utf8");
   assert.equal(source.includes("myfxbook-vps"), false);
