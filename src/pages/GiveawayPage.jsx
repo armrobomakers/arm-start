@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import brandLogo from "../assets/brand/logo.svg";
 import "../styles/giveaway-terms.css";
+import "../styles/giveaway-metrics-fix.css";
 
 function formatDate(value) {
   const date = new Date(value);
