@@ -7,8 +7,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "index.html"),
-        giveaway: resolve(__dirname, "giveaway.html"),
+        main: resolve(process.cwd(), "index.html"),
+        giveaway: resolve(process.cwd(), "giveaway.html"),
       },
     },
   },
