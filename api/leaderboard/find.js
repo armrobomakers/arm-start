@@ -14,7 +14,8 @@ export default async function handler(request, response) {
     return sendJson(response, 405, { ok: false, error: "method_not_allowed" });
   }
 
-  const query = String(request.query?.q || "").trim().slice(0, 80);
+  const url = new URL(request.url || "/api/leaderboard/find", "https://arm-start.vercel.app");
+  const query = String(url.searchParams.get("q") || "").trim().slice(0, 80);
   const isId = /^\d+$/.test(query);
   if ((!isId && query.length < 2) || (isId && query.length < 6)) {
     return sendJson(response, 400, { ok: false, error: "query_too_short" });
