@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { GIVEAWAY_CONFIG } from "../../shared/giveawayConfig.js";
 import brandLogo from "../assets/brand/logo.svg";
 import "../styles/giveaway-terms.css";
 import "../styles/giveaway-metrics-fix.css";
@@ -11,7 +12,7 @@ function formatNumber(value) {
   return new Intl.NumberFormat("ru-RU").format(Number(value || 0));
 }
 
-function formatDate(value, timeZone = "Asia/Yekaterinburg") {
+function formatDate(value, timeZone = GIVEAWAY_CONFIG.timezone) {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "";
   return new Intl.DateTimeFormat("ru-RU", {
@@ -63,21 +64,37 @@ function setMeta(selector, value) {
   if (node) node.setAttribute("content", value);
 }
 
+function applyGiveawayMeta() {
+  document.title = "ARM — Розыгрыш среди участников";
+  setMeta('meta[name="description"]', "Рейтинг участников розыгрыша ARM, количество купонов, прогресс до финала, условия участия и призы.");
+  setMeta('meta[property="og:title"]', "ARM — Розыгрыш среди участников");
+  setMeta('meta[property="og:description"]', "Следите за рейтингом участников, количеством купонов, прогрессом до финала и призами ARM.");
+  setMeta('meta[property="og:image"]', "https://arm-start.vercel.app/giveaway-og.svg");
+  setMeta('meta[name="twitter:title"]', "ARM — Розыгрыш среди участников");
+  setMeta('meta[name="twitter:description"]', "Рейтинг, купоны, прогресс до финала, условия и призы ARM.");
+  setMeta('meta[name="twitter:image"]', "https://arm-start.vercel.app/og-cover-v7.png");
+}
+
+function restoreDefaultMeta() {
+  document.title = "ARM Start";
+  setMeta('meta[name="description"]', "ARM Start: инструкция по подключению инвестора");
+  setMeta('meta[property="og:title"]', "ARM Start");
+  setMeta('meta[property="og:description"]', "ARM, Tickmill, Depomost и PAMM ARM");
+  setMeta('meta[property="og:image"]', "https://arm-start.vercel.app/og-cover.png");
+  setMeta('meta[name="twitter:title"]', "ARM Start");
+  setMeta('meta[name="twitter:description"]', "ARM, Tickmill, Depomost и PAMM ARM");
+  setMeta('meta[name="twitter:image"]', "https://arm-start.vercel.app/og-cover.png");
+}
+
 export function GiveawayPage() {
   const [state, setState] = useState({ status: "loading", data: null });
   const [searchQuery, setSearchQuery] = useState("");
   const [searchState, setSearchState] = useState({ status: "idle", matches: [] });
 
   useEffect(() => {
-    document.title = "ARM — Розыгрыш среди участников";
-    setMeta('meta[name="description"]', "Рейтинг участников розыгрыша ARM, количество купонов, прогресс до финала, условия участия и призы.");
-    setMeta('meta[property="og:title"]', "ARM — Розыгрыш среди участников");
-    setMeta('meta[property="og:description"]', "Следите за рейтингом участников, количеством купонов, прогрессом до финала и призами ARM.");
-    setMeta('meta[property="og:image"]', "https://arm-start.vercel.app/giveaway-og.svg");
-    setMeta('meta[name="twitter:title"]', "ARM — Розыгрыш среди участников");
-    setMeta('meta[name="twitter:description"]', "Рейтинг, купоны, прогресс до финала, условия и призы ARM.");
-    setMeta('meta[name="twitter:image"]', "https://arm-start.vercel.app/giveaway-og.svg");
+    applyGiveawayMeta();
     reachGoal("giveaway_view");
+    return restoreDefaultMeta;
   }, []);
 
   useEffect(() => {
@@ -127,8 +144,16 @@ export function GiveawayPage() {
   const periodStartLong = formatPeriodStartLong(data?.periodStart);
   const progress = Math.min(100, Math.max(0, Number(data?.progressPercent || 0)));
   const currency = data?.currency || "USD";
-  const rules = data?.rules;
-  const prizes = data?.prizes;
+  const rules = data?.rules || {
+    eligiblePlans: GIVEAWAY_CONFIG.eligiblePlans,
+    planPricesUsd: GIVEAWAY_CONFIG.planPricesUsd,
+    planCoupons: GIVEAWAY_CONFIG.planCoupons,
+  };
+  const prizes = data?.prizes || {
+    main: GIVEAWAY_CONFIG.mainPrize,
+    extra: GIVEAWAY_CONFIG.extraPrizes,
+  };
+  const ctaPath = data?.ctaPath || GIVEAWAY_CONFIG.ctaPath;
 
   const matchedKeys = useMemo(
     () => new Set((searchState.matches || []).map((row) => `${row.rank}|${row.name}|${row.coupons}`)),
@@ -138,14 +163,14 @@ export function GiveawayPage() {
   async function handleSearch(event) {
     event.preventDefault();
     const query = searchQuery.trim();
-    const isId = /^\d+$/.test(query);
-    if ((!isId && query.length < 2) || (isId && query.length < 6)) {
+    const isIdentifier = /^\d+$/.test(query);
+    if ((!isIdentifier && query.length < 2) || (isIdentifier && query.length < 6)) {
       setSearchState({ status: "short", matches: [] });
       return;
     }
 
     setSearchState({ status: "loading", matches: [] });
-    reachGoal("giveaway_find_self", { queryType: isId ? "id" : "name" });
+    reachGoal("giveaway_find_self", { queryType: isIdentifier ? "identifier" : "name" });
     try {
       const response = await fetch(`/api/leaderboard/find?q=${encodeURIComponent(query)}`);
       if (!response.ok) throw new Error("lookup_failed");
@@ -156,8 +181,8 @@ export function GiveawayPage() {
     }
   }
 
-  function handleAnchor(goal) {
-    reachGoal("giveaway_nav", { section: goal });
+  function handleAnchor(section) {
+    reachGoal("giveaway_nav", { section });
   }
 
   return (
@@ -185,7 +210,7 @@ export function GiveawayPage() {
             <strong>{data ? formatNumber(data.participants) : "—"}</strong>
             <small>
               {data
-                ? `Обновлено ${formatDate(data.updatedAt, data.timezone)} (${data.timezoneLabel})`
+                ? `Обновлено ${formatDate(data.updatedAt, data.timezone || GIVEAWAY_CONFIG.timezone)} (${data.timezoneLabel || GIVEAWAY_CONFIG.timezoneLabel})`
                 : "Загрузка данных"}
             </small>
           </div>
@@ -253,7 +278,7 @@ export function GiveawayPage() {
           <form className="participant-search" onSubmit={handleSearch} role="search">
             <div>
               <label htmlFor="participant-search-input">Найти себя в рейтинге</label>
-              <p>Введите имя, фамилию или свой внутренний ID. ID используется только для поиска и нигде не публикуется.</p>
+              <p>Введите имя, фамилию или свой внутренний идентификатор. Идентификатор используется только для поиска и нигде не публикуется.</p>
             </div>
             <div className="participant-search-controls">
               <input
@@ -270,7 +295,7 @@ export function GiveawayPage() {
 
           <div className="participant-search-result" aria-live="polite">
             {searchState.status === "loading" ? <span>Ищем участника…</span> : null}
-            {searchState.status === "short" ? <span>Введите минимум 2 буквы имени или минимум 6 цифр ID.</span> : null}
+            {searchState.status === "short" ? <span>Введите минимум 2 буквы имени или минимум 6 цифр идентификатора.</span> : null}
             {searchState.status === "error" ? <span>Не удалось выполнить поиск. Попробуйте ещё раз.</span> : null}
             {searchState.status === "ready" && searchState.matches.length === 0 ? <span>Совпадений не найдено.</span> : null}
             {searchState.status === "ready" && searchState.matches.length > 0 ? (
@@ -324,22 +349,22 @@ export function GiveawayPage() {
           <article className="term-card">
             <span className="term-number">01</span>
             <h3>Кто участвует</h3>
-            <p>В программе учитываются только личные продажи подписок <strong>{rules?.eligiblePlans?.join(" и ") || "VIP и PREMIUM"}</strong>.</p>
+            <p>В программе учитываются только личные продажи подписок <strong>{rules.eligiblePlans.join(" и ")}</strong>.</p>
           </article>
 
           <article className="term-card term-card-accent">
             <span className="term-number">02</span>
             <h3>Как начисляются купоны</h3>
             <p>
-              <strong>{data ? `${formatNumber(data.couponStepAmount)} ${currency} личных продаж = 1 купон.` : "—"}</strong>{" "}
-              VIP стоимостью {rules ? formatNumber(rules.planPricesUsd.VIP) : "—"} USD дает {rules?.planCoupons?.VIP || "—"} купон, PREMIUM стоимостью {rules ? formatNumber(rules.planPricesUsd.PREMIUM) : "—"} USD — {rules?.planCoupons?.PREMIUM || "—"} купонов.
+              <strong>{data ? `${formatNumber(data.couponStepAmount)} ${currency} личных продаж = 1 купон.` : "Данные о шаге начисления загружаются."}</strong>{" "}
+              VIP стоимостью {formatNumber(rules.planPricesUsd.VIP)} USD дает {rules.planCoupons.VIP} купон, PREMIUM стоимостью {formatNumber(rules.planPricesUsd.PREMIUM)} USD — {rules.planCoupons.PREMIUM} купонов.
             </p>
           </article>
 
           <article className="term-card">
             <span className="term-number">03</span>
             <h3>Когда состоится финал</h3>
-            <p>Накопление купонов началось <strong>{periodStartLong}</strong>. Розыгрыш активируется при накоплении <strong>{data ? `${formatNumber(data.targetCoupons)} купонов` : "—"}</strong> — это {data ? `${formatNumber(data.targetTurnover)} ${currency}` : "—"} оборота.</p>
+            <p>Накопление купонов началось <strong>{periodStartLong}</strong>. Розыгрыш активируется при накоплении <strong>{data ? `${formatNumber(data.targetCoupons)} купонов` : `${formatNumber(GIVEAWAY_CONFIG.targetCoupons)} купонов`}</strong>{data ? ` — это ${formatNumber(data.targetTurnover)} ${currency} оборота.` : "."}</p>
           </article>
 
           <article className="term-card">
@@ -352,18 +377,14 @@ export function GiveawayPage() {
         <div id="giveaway-prizes" className="prizes-panel">
           <article className="main-prize-card">
             <span>Главный приз</span>
-            <h3>{prizes?.main?.label || "Автомобиль"}</h3>
-            <strong>В эквиваленте — {prizes ? formatNumber(prizes.main.valueUsd) : "35 000"} USD</strong>
+            <h3>{prizes.main.label}</h3>
+            <strong>В эквиваленте — {formatNumber(prizes.main.valueUsd)} USD</strong>
           </article>
 
           <article className="extra-prizes-card">
             <span>Дополнительные призы</span>
             <ul>
-              {(prizes?.extra || [
-                { quantity: 1, label: "MacBook Pro" },
-                { quantity: 2, label: "iPhone 17 Pro Max" },
-                { quantity: 3, label: "AirPods 3 Pro" },
-              ]).map((prize) => (
+              {prizes.extra.map((prize) => (
                 <li key={prize.label}><strong>{prize.quantity}</strong><span>{prize.label}</span></li>
               ))}
             </ul>
@@ -376,10 +397,7 @@ export function GiveawayPage() {
             <h3>Получайте купоны за личные продажи VIP и PREMIUM.</h3>
             <p>Перейдите к информации о подписках ARM и условиям их подключения.</p>
           </div>
-          <Link
-            to={data?.ctaPath || "/arm-subscription"}
-            onClick={() => reachGoal("giveaway_cta_click")}
-          >
+          <Link to={ctaPath} onClick={() => reachGoal("giveaway_cta_click")}>
             Узнать о VIP и PREMIUM <span aria-hidden="true">↗</span>
           </Link>
         </aside>
