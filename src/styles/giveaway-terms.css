@@ -244,6 +244,7 @@
   }
 
   .terms-heading {
+    min-width: 0;
     margin-bottom: 18px;
   }
 
@@ -252,7 +253,18 @@
   }
 
   .terms-heading h2 {
-    font-size: clamp(38px, 12vw, 54px);
+    max-width: 100%;
+    font-size: clamp(32px, 9.6vw, 44px);
+    letter-spacing: -.045em;
+    line-height: .98;
+    text-wrap: balance;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .terms-heading h2 em {
+    max-width: 100%;
+    font-size: .92em;
   }
 
   .terms-heading > p:last-child {
