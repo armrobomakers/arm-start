@@ -3,6 +3,12 @@
   "cleanUrls": true,
   "redirects": [
     {
+      "source": "/",
+      "has": [{ "type": "host", "value": "arm-start.vercel.app" }],
+      "destination": "https://start.robomakers.org/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "arm-start.vercel.app" }],
       "destination": "https://start.robomakers.org/:path*",
