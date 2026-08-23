@@ -1,7 +1,20 @@
 {
-  "rewrites": [
-    { "source": "/giveaway", "destination": "/giveaway.html" },
-    { "source": "/giveaway/", "destination": "/giveaway.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "arm-start.vercel.app" }],
+      "destination": "https://start.robomakers.org/:path*",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, nosnippet" }
+      ]
+    }
   ]
 }
