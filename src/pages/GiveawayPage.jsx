@@ -140,7 +140,7 @@ export function GiveawayPage() {
 
   const data = state.data;
   const rows = data?.rows || [];
-  const leaders = rows.filter((row) => row.rank <= 3);
+  const leaders = rows.slice(0, 3);
   const periodStart = formatPeriodStart(data?.periodStart);
   const periodStartLong = formatPeriodStartLong(data?.periodStart);
   const currency = data?.currency || "USD";
@@ -174,14 +174,13 @@ export function GiveawayPage() {
   async function handleSearch(event) {
     event.preventDefault();
     const query = searchQuery.trim();
-    const isIdentifier = /^\d+$/.test(query);
-    if ((!isIdentifier && query.length < 2) || (isIdentifier && query.length < 6)) {
+    if (query.length < 2) {
       setSearchState({ status: "short", matches: [] });
       return;
     }
 
     setSearchState({ status: "loading", matches: [] });
-    reachGoal("giveaway_find_self", { queryType: isIdentifier ? "identifier" : "name" });
+    reachGoal("giveaway_find_self", { queryType: "name" });
     try {
       const response = await fetch(`/api/leaderboard/find?q=${encodeURIComponent(query)}`);
       if (!response.ok) throw new Error("lookup_failed");
@@ -271,7 +270,7 @@ export function GiveawayPage() {
               <p className="giveaway-kicker"><span /> РЕЙТИНГ УЧАСТНИКОВ</p>
               <h2 id="leaders-title">Лидеры по количеству купонов</h2>
             </div>
-            <p>Позиция отражает только количество купонов и не является результатом розыгрыша. При одинаковом количестве купонов участники занимают одинаковое место.</p>
+            <p>Позиция отражает только количество купонов и не является результатом розыгрыша. При одинаковом количестве купонов выше находится участник, который последним совершил продажу.</p>
           </div>
 
           {leaders.length > 0 ? (
@@ -289,7 +288,7 @@ export function GiveawayPage() {
           <form className="participant-search" onSubmit={handleSearch} role="search">
             <div>
               <label htmlFor="participant-search-input">Найти себя в рейтинге</label>
-              <p>Введите имя, фамилию или свой внутренний идентификатор. Идентификатор используется только для поиска и нигде не публикуется.</p>
+              <p>Введите имя или фамилию участника.</p>
             </div>
             <div className="participant-search-controls">
               <input
@@ -297,7 +296,7 @@ export function GiveawayPage() {
                 type="search"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Например: Евгений или 9997166787"
+                placeholder="Например: Евгений или Васильченко"
                 autoComplete="off"
               />
               <button type="submit">Найти</button>
@@ -306,7 +305,7 @@ export function GiveawayPage() {
 
           <div className="participant-search-result" aria-live="polite">
             {searchState.status === "loading" ? <span>Ищем участника…</span> : null}
-            {searchState.status === "short" ? <span>Введите минимум 2 буквы имени или минимум 6 цифр идентификатора.</span> : null}
+            {searchState.status === "short" ? <span>Введите минимум 2 буквы имени или фамилии.</span> : null}
             {searchState.status === "error" ? <span>Не удалось выполнить поиск. Попробуйте ещё раз.</span> : null}
             {searchState.status === "ready" && searchState.matches.length === 0 ? <span>Совпадений не найдено.</span> : null}
             {searchState.status === "ready" && searchState.matches.length > 0 ? (
