@@ -10,24 +10,14 @@ export function sanitizeParticipantName(value) {
 }
 
 export function buildPublicRows(rows = []) {
-  const sorted = rows
+  return rows
     .map((row, index) => ({ row, index }))
-    .sort((a, b) => Number(b.row?.coupons || 0) - Number(a.row?.coupons || 0) || a.index - b.index);
-
-  let rank = 0;
-  let previousCoupons = null;
-  return sorted.map(({ row }) => {
-    const coupons = Number(row.coupons);
-    if (coupons !== previousCoupons) {
-      rank += 1;
-      previousCoupons = coupons;
-    }
-    return {
-      rank,
+    .sort((a, b) => Number(b.row?.coupons || 0) - Number(a.row?.coupons || 0) || a.index - b.index)
+    .map(({ row }, index) => ({
+      rank: index + 1,
       name: sanitizeParticipantName(row.name),
-      coupons,
-    };
-  });
+      coupons: Number(row.coupons),
+    }));
 }
 
 export function toPublicLeaderboard(data) {
@@ -57,7 +47,7 @@ export function toPublicLeaderboard(data) {
       eligiblePlans: [...GIVEAWAY_CONFIG.eligiblePlans],
       planPricesUsd: { ...GIVEAWAY_CONFIG.planPricesUsd },
       planCoupons: { ...GIVEAWAY_CONFIG.planCoupons },
-      rankRule: "equal_coupons_equal_rank",
+      rankRule: "coupons_desc_source_order_tiebreak",
     },
     prizes: {
       main: { ...GIVEAWAY_CONFIG.mainPrize },
@@ -71,17 +61,14 @@ export function findPublicParticipants(data, query) {
   const rawRows = Array.isArray(data?.rows) ? data.rows : [];
   const publicRows = buildPublicRows(rawRows);
   const normalizedQuery = normalizeSearch(query);
-  if (!normalizedQuery) return [];
+  if (normalizedQuery.length < 2) return [];
 
-  const digitQuery = /^\d{6,13}$/.test(normalizedQuery);
   const matches = [];
 
   rawRows.forEach((rawRow) => {
     const safeName = sanitizeParticipantName(rawRow.name);
-    const rawName = String(rawRow.name || "");
-    const byId = digitQuery && new RegExp(`\\(${normalizedQuery}\\)\\s*$`).test(rawName);
-    const byName = !digitQuery && normalizeSearch(safeName).includes(normalizedQuery);
-    if (!byId && !byName) return;
+    const byName = normalizeSearch(safeName).includes(normalizedQuery);
+    if (!byName) return;
 
     const projected = publicRows.find(
       (row) => row.name === safeName && row.coupons === Number(rawRow.coupons),

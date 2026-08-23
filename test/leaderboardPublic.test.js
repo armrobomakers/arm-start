@@ -12,7 +12,7 @@ test("sanitizeParticipantName removes ids and patronymics", () => {
   assert.equal(sanitizeParticipantName("Borovik Denis Borisovich (4720838313)"), "Borovik Denis");
 });
 
-test("buildPublicRows gives equal coupon totals equal dense ranks", () => {
+test("buildPublicRows keeps unique positions and preserves source order on equal coupons", () => {
   const rows = buildPublicRows([
     { name: "Первый Иван (1000000001)", coupons: 22 },
     { name: "Второй Петр (1000000002)", coupons: 10 },
@@ -20,7 +20,9 @@ test("buildPublicRows gives equal coupon totals equal dense ranks", () => {
     { name: "Четвертый Сергей (1000000004)", coupons: 6 },
     { name: "Пятый Роман (1000000005)", coupons: 5 },
   ]);
-  assert.deepEqual(rows.map((row) => row.rank), [1, 2, 3, 3, 4]);
+  assert.deepEqual(rows.map((row) => row.rank), [1, 2, 3, 4, 5]);
+  assert.equal(rows[2].name, "Третий Алексей");
+  assert.equal(rows[3].name, "Четвертый Сергей");
 });
 
 test("toPublicLeaderboard never exposes raw ids or patronymics", () => {
@@ -40,19 +42,21 @@ test("toPublicLeaderboard never exposes raw ids or patronymics", () => {
   assert.equal(serialized.includes("Геннадьевна"), false);
   assert.equal(result.targetCoupons, 600);
   assert.equal(result.targetTurnover, 300000);
+  assert.equal(result.rules.rankRule, "coupons_desc_source_order_tiebreak");
 });
 
-test("private-backed lookup accepts an id but returns only safe fields", () => {
+test("participant lookup searches only by safe first or last name", () => {
   const data = {
     rows: [
       { name: "Козлова Татьяна Геннадьевна (1937546046)", coupons: 2 },
       { name: "Васильченко Евгений (9997166787)", coupons: 22 },
     ],
   };
-  assert.deepEqual(findPublicParticipants(data, "1937546046"), [
-    { rank: 2, name: "Козлова Татьяна", coupons: 2 },
-  ]);
+  assert.deepEqual(findPublicParticipants(data, "1937546046"), []);
   assert.deepEqual(findPublicParticipants(data, "Васильченко"), [
     { rank: 1, name: "Васильченко Евгений", coupons: 22 },
+  ]);
+  assert.deepEqual(findPublicParticipants(data, "Татьяна"), [
+    { rank: 2, name: "Козлова Татьяна", coupons: 2 },
   ]);
 });
