@@ -1,4 +1,5 @@
 import { readLeaderboard } from "../_lib/leaderboard.js";
+import { toPublicLeaderboard } from "../_lib/leaderboardPublic.js";
 
 function sendJson(response, statusCode, payload) {
   response.statusCode = statusCode;
@@ -15,7 +16,7 @@ export default async function handler(request, response) {
   try {
     const data = await readLeaderboard();
     if (!data) return sendJson(response, 404, { ok: false, error: "leaderboard_unavailable" });
-    return sendJson(response, 200, { ok: true, data });
+    return sendJson(response, 200, { ok: true, data: toPublicLeaderboard(data) });
   } catch {
     return sendJson(response, 503, { ok: false, error: "leaderboard_unavailable" });
   }
