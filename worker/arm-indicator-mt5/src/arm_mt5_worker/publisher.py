@@ -9,6 +9,9 @@ import urllib.request
 from dataclasses import dataclass
 
 
+CALCULATION_MODEL = "balance-v2"
+
+
 @dataclass(frozen=True)
 class PublishResult:
     status: int
@@ -44,4 +47,4 @@ class Publisher:
 
 def canonical_payload(system_id: str, account_name: str, daily_gain: list[dict], fetched_at: str | None = None) -> dict:
     fetched_at = fetched_at or __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()
-    return {"version": 1, "systemId": str(system_id), "accountName": account_name, "fetchedAt": fetched_at, "dailyGain": sorted(daily_gain, key=lambda item: item["date"])}
+    return {"version": 1, "calculationModel": CALCULATION_MODEL, "systemId": str(system_id), "accountName": account_name, "fetchedAt": fetched_at, "dailyGain": sorted(daily_gain, key=lambda item: item["date"])}
