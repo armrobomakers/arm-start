@@ -9,7 +9,7 @@
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/:path((?!api(?:/|$)).*)",
       "has": [{ "type": "host", "value": "arm-start.vercel.app" }],
       "destination": "https://start.robomakers.org/:path*",
       "permanent": true
