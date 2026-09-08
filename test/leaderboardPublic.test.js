@@ -46,6 +46,13 @@ test("toPublicLeaderboard uses the 100-coupon Apple giveaway and never exposes r
   assert.equal(result.remainingCoupons, 76);
   assert.equal(result.progressPercent, 24);
   assert.equal(result.rules.rankRule, "coupons_desc_source_order_tiebreak");
+  assert.deepEqual(result.event, {
+    date: "2026-10-03",
+    dateLabel: "3 октября 2026 года",
+    city: "Красноярск",
+    venue: "конференция",
+    drawMethod: "лототрон",
+  });
   assert.deepEqual(result.prizes.items, [
     { quantity: 1, label: "MacBook Pro" },
     { quantity: 2, label: "iPhone 17 Pro Max" },

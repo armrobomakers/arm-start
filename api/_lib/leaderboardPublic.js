@@ -29,7 +29,7 @@ export function toPublicLeaderboard(data) {
   const couponStepAmount = Number(data?.couponStepAmount || 0);
 
   return {
-    version: 3,
+    version: 4,
     updatedAt: data.updatedAt,
     periodStart: data.periodStart,
     currency: data.currency,
@@ -43,6 +43,7 @@ export function toPublicLeaderboard(data) {
     timezone: GIVEAWAY_CONFIG.timezone,
     timezoneLabel: GIVEAWAY_CONFIG.timezoneLabel,
     ctaPath: GIVEAWAY_CONFIG.ctaPath,
+    event: { ...GIVEAWAY_CONFIG.event },
     rules: {
       eligiblePlans: [...GIVEAWAY_CONFIG.eligiblePlans],
       planPricesUsd: { ...GIVEAWAY_CONFIG.planPricesUsd },

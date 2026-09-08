@@ -68,12 +68,12 @@ function setMeta(selector, value) {
 
 function applyGiveawayMeta() {
   document.title = "ARM — Розыгрыш техники Apple";
-  setMeta('meta[name="description"]', "Рейтинг участников розыгрыша техники Apple ARM: финал при 100 купонах, условия участия и призы MacBook Pro, iPhone 17 Pro Max и AirPods 3 Pro.");
+  setMeta('meta[name="description"]', "Рейтинг участников розыгрыша техники Apple ARM: финал при 100 купонах, 3 октября 2026 года в Красноярске, призы MacBook Pro, iPhone 17 Pro Max и AirPods 3 Pro.");
   setMeta('meta[property="og:title"]', "ARM — Розыгрыш техники Apple");
-  setMeta('meta[property="og:description"]', "Следите за рейтингом и прогрессом до 100 купонов. В розыгрыше — MacBook Pro, iPhone 17 Pro Max и AirPods 3 Pro.");
+  setMeta('meta[property="og:description"]', "Розыгрыш 3 октября 2026 года в Красноярске на конференции. Цель — 100 купонов, победителей определим через лототрон.");
   setMeta('meta[property="og:image"]', `${SITE_URL}/og-cover.png`);
   setMeta('meta[name="twitter:title"]', "ARM — Розыгрыш техники Apple");
-  setMeta('meta[name="twitter:description"]', "Рейтинг участников, прогресс до 100 купонов и техника Apple в розыгрыше ARM.");
+  setMeta('meta[name="twitter:description"]', "3 октября 2026 года, Красноярск: техника Apple, 100 купонов и розыгрыш через лототрон.");
   setMeta('meta[name="twitter:image"]', `${SITE_URL}/og-cover-v7.png`);
 }
 
@@ -161,6 +161,7 @@ export function GiveawayPage() {
     planPricesUsd: GIVEAWAY_CONFIG.planPricesUsd,
     planCoupons: GIVEAWAY_CONFIG.planCoupons,
   };
+  const event = data?.event || GIVEAWAY_CONFIG.event;
   const prizes = Array.isArray(data?.prizes?.items)
     ? data.prizes.items
     : GIVEAWAY_CONFIG.prizes;
@@ -171,8 +172,8 @@ export function GiveawayPage() {
     [searchState.matches],
   );
 
-  async function handleSearch(event) {
-    event.preventDefault();
+  async function handleSearch(eventSubmit) {
+    eventSubmit.preventDefault();
     const query = searchQuery.trim();
     if (query.length < 2) {
       setSearchState({ status: "short", matches: [] });
@@ -211,7 +212,7 @@ export function GiveawayPage() {
           <p className="giveaway-kicker"><span /> СООБЩЕСТВО ARM / КУПОНЫ</p>
           <h1 id="giveaway-title"><span>Топ по</span> <em>купонам.</em></h1>
           <p className="leaderboard-lead">
-            Рейтинг участников розыгрыша техники Apple. Финал — при {formatNumber(targetCoupons)} купонах. Данные обновляются 1 раз в сутки.
+            Рейтинг участников розыгрыша техники Apple. Цель — {formatNumber(targetCoupons)} купонов. Розыгрыш — {event.dateLabel} в {event.city}.
           </p>
         </div>
 
@@ -297,7 +298,7 @@ export function GiveawayPage() {
                 id="participant-search-input"
                 type="search"
                 value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
+                onChange={(eventInput) => setSearchQuery(eventInput.target.value)}
                 placeholder="Например: Евгений или Васильченко"
                 autoComplete="off"
               />
@@ -355,7 +356,7 @@ export function GiveawayPage() {
           <p className="giveaway-kicker"><span /> УСЛОВИЯ РОЗЫГРЫША</p>
           <h2 id="giveaway-terms-title">Как участвовать <em>и что можно выиграть.</em></h2>
           <p>
-            Купоны начисляются за личные продажи подписок VIP и PREMIUM. Розыгрыш техники Apple состоится при достижении {formatNumber(targetCoupons)} купонов.
+            Купоны начисляются за личные продажи подписок VIP и PREMIUM. Розыгрыш техники Apple пройдет {event.dateLabel} в {event.city} на конференции.
           </p>
         </div>
 
@@ -379,15 +380,16 @@ export function GiveawayPage() {
             <span className="term-number">03</span>
             <h3>Когда состоится розыгрыш</h3>
             <p>
-              Накопление купонов началось <strong>{periodStartLong}</strong>. Розыгрыш состоится при накоплении <strong>{formatNumber(targetCoupons)} купонов</strong>
-              {data ? ` — это ${formatNumber(targetTurnover)} ${currency} личных продаж.` : "."}
+              Накопление купонов началось <strong>{periodStartLong}</strong>. Цель — <strong>{formatNumber(targetCoupons)} купонов</strong>
+              {data ? ` (${formatNumber(targetTurnover)} ${currency} личных продаж). ` : ". "}
+              Розыгрыш пройдет <strong>{event.dateLabel}</strong> в <strong>{event.city}</strong> на конференции.
             </p>
           </article>
 
           <article className="term-card">
             <span className="term-number">04</span>
             <h3>Как пройдет розыгрыш</h3>
-            <p>Розыгрыш пройдет <strong>в прямом эфире</strong>. Купоны автоматически учитываются в Telegram-боте.</p>
+            <p>Победителей определим <strong>с помощью лототрона</strong> непосредственно на конференции. Купоны автоматически учитываются в Telegram-боте.</p>
           </article>
         </div>
 
@@ -413,7 +415,7 @@ export function GiveawayPage() {
           <div>
             <span>Хотите участвовать?</span>
             <h3>Получайте купоны за личные продажи VIP и PREMIUM.</h3>
-            <p>Розыгрыш техники Apple состоится при достижении {formatNumber(targetCoupons)} купонов.</p>
+            <p>{event.dateLabel}, {event.city}: розыгрыш техники Apple через лототрон. Цель — {formatNumber(targetCoupons)} купонов.</p>
           </div>
           <Link to={ctaPath} onClick={() => reachGoal("giveaway_cta_click")}>
             Узнать о VIP и PREMIUM <span aria-hidden="true">↗</span>
