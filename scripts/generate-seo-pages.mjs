@@ -127,13 +127,13 @@ for (const section of guideSections) {
 const giveawayPath = resolve(DIST_DIR, "giveaway.html");
 const giveawayTemplate = await readFile(giveawayPath, "utf8");
 const giveawayUrl = `${SITE_URL}/giveaway`;
-const giveawayTitle = "ARM — Розыгрыш среди участников";
-const giveawayDescription = "Рейтинг участников розыгрыша ARM, количество купонов, прогресс до финала, условия участия и призы.";
+const giveawayTitle = "ARM — Розыгрыш техники Apple";
+const giveawayDescription = "Рейтинг участников розыгрыша техники Apple ARM: финал при 100 купонах, условия участия и призы MacBook Pro, iPhone 17 Pro Max и AirPods 3 Pro.";
 const giveawayHtml = applySeo(giveawayTemplate, {
   title: giveawayTitle,
   description: giveawayDescription,
   url: giveawayUrl,
-  image: `${SITE_URL}/og-cover-v7.png`,
+  image: `${SITE_URL}/og-cover.png`,
   imageType: "image/png",
   siteName: "ARM",
   schema: buildSchema({ title: giveawayTitle, description: giveawayDescription, url: giveawayUrl }),

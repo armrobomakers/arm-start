@@ -7,6 +7,7 @@ import "../styles/giveaway-metrics-fix.css";
 import "../styles/giveaway-stage2.css";
 
 const METRIKA_ID = 110091324;
+const SITE_URL = "https://start.robomakers.org";
 
 function formatNumber(value) {
   return new Intl.NumberFormat("ru-RU").format(Number(value || 0));
@@ -66,14 +67,14 @@ function setMeta(selector, value) {
 }
 
 function applyGiveawayMeta() {
-  document.title = "ARM — Розыгрыш среди участников";
-  setMeta('meta[name="description"]', "Рейтинг участников розыгрыша ARM, количество купонов, прогресс до финала, условия участия и призы.");
-  setMeta('meta[property="og:title"]', "ARM — Розыгрыш среди участников");
-  setMeta('meta[property="og:description"]', "Следите за рейтингом участников, количеством купонов, прогрессом до финала и призами ARM.");
-  setMeta('meta[property="og:image"]', "https://arm-start.vercel.app/giveaway-og.svg");
-  setMeta('meta[name="twitter:title"]', "ARM — Розыгрыш среди участников");
-  setMeta('meta[name="twitter:description"]', "Рейтинг, купоны, прогресс до финала, условия и призы ARM.");
-  setMeta('meta[name="twitter:image"]', "https://arm-start.vercel.app/og-cover-v7.png");
+  document.title = "ARM — Розыгрыш техники Apple";
+  setMeta('meta[name="description"]', "Рейтинг участников розыгрыша техники Apple ARM: финал при 100 купонах, условия участия и призы MacBook Pro, iPhone 17 Pro Max и AirPods 3 Pro.");
+  setMeta('meta[property="og:title"]', "ARM — Розыгрыш техники Apple");
+  setMeta('meta[property="og:description"]', "Следите за рейтингом и прогрессом до 100 купонов. В розыгрыше — MacBook Pro, iPhone 17 Pro Max и AirPods 3 Pro.");
+  setMeta('meta[property="og:image"]', `${SITE_URL}/og-cover.png`);
+  setMeta('meta[name="twitter:title"]', "ARM — Розыгрыш техники Apple");
+  setMeta('meta[name="twitter:description"]', "Рейтинг участников, прогресс до 100 купонов и техника Apple в розыгрыше ARM.");
+  setMeta('meta[name="twitter:image"]', `${SITE_URL}/og-cover-v7.png`);
 }
 
 function restoreDefaultMeta() {
@@ -81,10 +82,10 @@ function restoreDefaultMeta() {
   setMeta('meta[name="description"]', "ARM Start: инструкция по подключению инвестора");
   setMeta('meta[property="og:title"]', "ARM Start");
   setMeta('meta[property="og:description"]', "ARM, Tickmill, Depomost и PAMM ARM");
-  setMeta('meta[property="og:image"]', "https://arm-start.vercel.app/og-cover.png");
+  setMeta('meta[property="og:image"]', `${SITE_URL}/og-cover.png`);
   setMeta('meta[name="twitter:title"]', "ARM Start");
   setMeta('meta[name="twitter:description"]', "ARM, Tickmill, Depomost и PAMM ARM");
-  setMeta('meta[name="twitter:image"]', "https://arm-start.vercel.app/og-cover.png");
+  setMeta('meta[name="twitter:image"]', `${SITE_URL}/og-cover.png`);
 }
 
 export function GiveawayPage() {
@@ -160,10 +161,9 @@ export function GiveawayPage() {
     planPricesUsd: GIVEAWAY_CONFIG.planPricesUsd,
     planCoupons: GIVEAWAY_CONFIG.planCoupons,
   };
-  const prizes = data?.prizes || {
-    main: GIVEAWAY_CONFIG.mainPrize,
-    extra: GIVEAWAY_CONFIG.extraPrizes,
-  };
+  const prizes = Array.isArray(data?.prizes?.items)
+    ? data.prizes.items
+    : GIVEAWAY_CONFIG.prizes;
   const ctaPath = data?.ctaPath || GIVEAWAY_CONFIG.ctaPath;
 
   const matchedKeys = useMemo(
@@ -210,7 +210,9 @@ export function GiveawayPage() {
         <div>
           <p className="giveaway-kicker"><span /> СООБЩЕСТВО ARM / КУПОНЫ</p>
           <h1 id="giveaway-title"><span>Топ по</span> <em>купонам.</em></h1>
-          <p className="leaderboard-lead">Рейтинг участников розыгрыша. Данные обновляются 1 раз в сутки.</p>
+          <p className="leaderboard-lead">
+            Рейтинг участников розыгрыша техники Apple. Финал — при {formatNumber(targetCoupons)} купонах. Данные обновляются 1 раз в сутки.
+          </p>
         </div>
 
         <div className="leaderboard-dashboard" aria-label="Сводка рейтинга">
@@ -233,9 +235,9 @@ export function GiveawayPage() {
             </div>
           </div>
 
-          <div className="giveaway-progress" aria-label="Прогресс до финального розыгрыша">
+          <div className="giveaway-progress" aria-label="Прогресс до розыгрыша техники Apple">
             <div className="giveaway-progress-head">
-              <span>Прогресс до финала</span>
+              <span>До розыгрыша Apple</span>
               <strong>{data ? `${formatNumber(totalCoupons)} / ${formatNumber(targetCoupons)}` : "—"}</strong>
             </div>
             <div className="giveaway-progress-track" aria-hidden="true">
@@ -352,7 +354,9 @@ export function GiveawayPage() {
         <div className="terms-heading">
           <p className="giveaway-kicker"><span /> УСЛОВИЯ РОЗЫГРЫША</p>
           <h2 id="giveaway-terms-title">Как участвовать <em>и что можно выиграть.</em></h2>
-          <p>Купоны начисляются за личные продажи подписок VIP и PREMIUM. Чем больше личных продаж, тем больше купонов участвует в финальном розыгрыше.</p>
+          <p>
+            Купоны начисляются за личные продажи подписок VIP и PREMIUM. Розыгрыш техники Apple состоится при достижении {formatNumber(targetCoupons)} купонов.
+          </p>
         </div>
 
         <div className="terms-grid">
@@ -373,39 +377,43 @@ export function GiveawayPage() {
 
           <article className="term-card">
             <span className="term-number">03</span>
-            <h3>Когда состоится финал</h3>
-            <p>Накопление купонов началось <strong>{periodStartLong}</strong>. Розыгрыш активируется при накоплении <strong>{formatNumber(targetCoupons)} купонов</strong>{data ? ` — это ${formatNumber(targetTurnover)} ${currency} оборота.` : "."}</p>
+            <h3>Когда состоится розыгрыш</h3>
+            <p>
+              Накопление купонов началось <strong>{periodStartLong}</strong>. Розыгрыш состоится при накоплении <strong>{formatNumber(targetCoupons)} купонов</strong>
+              {data ? ` — это ${formatNumber(targetTurnover)} ${currency} личных продаж.` : "."}
+            </p>
           </article>
 
           <article className="term-card">
             <span className="term-number">04</span>
-            <h3>Как определят победителей</h3>
-            <p>Победители определяются <strong>в прямом эфире</strong>. Купоны автоматически учитываются в Telegram-боте.</p>
+            <h3>Как пройдет розыгрыш</h3>
+            <p>Розыгрыш пройдет <strong>в прямом эфире</strong>. Купоны автоматически учитываются в Telegram-боте.</p>
           </article>
         </div>
 
-        <div id="giveaway-prizes" className="prizes-panel">
-          <article className="main-prize-card">
-            <span>Главный приз</span>
-            <h3>{prizes.main.label}</h3>
-            <strong>В эквиваленте — {formatNumber(prizes.main.valueUsd)} USD</strong>
-          </article>
+        <div id="giveaway-prizes" className="prizes-panel" aria-labelledby="giveaway-prizes-title">
+          <div className="prizes-panel-heading">
+            <span>ПРИЗЫ РОЗЫГРЫША</span>
+            <h3 id="giveaway-prizes-title">Техника Apple</h3>
+            <p>В финале разыгрываем MacBook Pro, iPhone 17 Pro Max и AirPods 3 Pro.</p>
+          </div>
 
-          <article className="extra-prizes-card">
-            <span>Дополнительные призы</span>
-            <ul>
-              {prizes.extra.map((prize) => (
-                <li key={prize.label}><strong>{prize.quantity}</strong><span>{prize.label}</span></li>
-              ))}
-            </ul>
-          </article>
+          <div className="apple-prizes-grid">
+            {prizes.map((prize, index) => (
+              <article className="apple-prize-card" key={prize.label}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <h4>{prize.label}</h4>
+                <strong>{prize.quantity} шт.</strong>
+              </article>
+            ))}
+          </div>
         </div>
 
         <aside className="giveaway-cta" aria-label="Как получить купоны">
           <div>
             <span>Хотите участвовать?</span>
             <h3>Получайте купоны за личные продажи VIP и PREMIUM.</h3>
-            <p>Перейдите к информации о подписках ARM и условиям их подключения.</p>
+            <p>Розыгрыш техники Apple состоится при достижении {formatNumber(targetCoupons)} купонов.</p>
           </div>
           <Link to={ctaPath} onClick={() => reachGoal("giveaway_cta_click")}>
             Узнать о VIP и PREMIUM <span aria-hidden="true">↗</span>

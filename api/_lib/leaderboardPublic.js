@@ -29,7 +29,7 @@ export function toPublicLeaderboard(data) {
   const couponStepAmount = Number(data?.couponStepAmount || 0);
 
   return {
-    version: 2,
+    version: 3,
     updatedAt: data.updatedAt,
     periodStart: data.periodStart,
     currency: data.currency,
@@ -50,8 +50,7 @@ export function toPublicLeaderboard(data) {
       rankRule: "coupons_desc_source_order_tiebreak",
     },
     prizes: {
-      main: { ...GIVEAWAY_CONFIG.mainPrize },
-      extra: GIVEAWAY_CONFIG.extraPrizes.map((item) => ({ ...item })),
+      items: GIVEAWAY_CONFIG.prizes.map((item) => ({ ...item })),
     },
     rows,
   };
