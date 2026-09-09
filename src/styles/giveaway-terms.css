@@ -296,8 +296,9 @@
   }
 
   .prizes-panel {
+    overflow: hidden;
     margin-top: 10px;
-    padding: 20px;
+    padding: 18px;
     border-radius: 18px;
   }
 
@@ -307,13 +308,15 @@
 
   .prizes-panel-heading h3 {
     max-width: 100%;
-    font-size: clamp(32px, 10vw, 42px);
-    letter-spacing: -.045em;
+    font-size: clamp(30px, 8.8vw, 38px);
+    letter-spacing: -.04em;
+    line-height: .98;
     text-wrap: balance;
   }
 
   .prizes-panel-heading p {
     font-size: 13px;
+    line-height: 1.45;
   }
 
   .apple-prizes-grid {
@@ -321,23 +324,80 @@
   }
 
   .apple-prize-card {
-    min-height: 132px;
-    padding: 20px;
+    min-height: 0;
+    display: block;
+    padding: 18px;
     border-radius: 16px;
   }
 
+  .apple-prize-card::after {
+    width: 112px;
+    height: 112px;
+    top: -48px;
+    right: -36px;
+  }
+
   .apple-prize-card > span {
-    top: 18px;
-    left: 20px;
-    font-size: 20px;
+    position: relative;
+    top: auto;
+    left: auto;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    min-height: 26px;
+    margin: 0 0 16px;
+    padding: 4px 8px;
+    border: 1px solid rgba(114, 169, 107, .18);
+    border-radius: 999px;
+    background: rgba(238, 247, 235, .88);
+    font-size: 16px;
+    line-height: 1;
   }
 
   .apple-prize-card h4 {
-    max-width: 88%;
-    font-size: clamp(27px, 8.2vw, 36px);
+    max-width: 86%;
+    margin: 0 0 14px;
+    font-size: clamp(27px, 7.6vw, 33px);
+    letter-spacing: -.035em;
+    line-height: .96;
+    text-wrap: balance;
+    overflow-wrap: normal;
+    word-break: normal;
   }
 
   .apple-prize-card strong {
+    display: block;
     font-size: 14px;
+    line-height: 1.2;
+  }
+}
+
+@media (max-width: 380px) {
+  .giveaway-terms {
+    width: calc(100% - 20px);
+  }
+
+  .prizes-panel {
+    padding: 15px;
+  }
+
+  .prizes-panel-heading h3 {
+    font-size: clamp(28px, 8.6vw, 34px);
+  }
+
+  .apple-prize-card {
+    padding: 16px;
+  }
+
+  .apple-prize-card > span {
+    margin-bottom: 14px;
+    font-size: 15px;
+  }
+
+  .apple-prize-card h4 {
+    max-width: 90%;
+    font-size: clamp(25px, 7.8vw, 30px);
   }
 }
