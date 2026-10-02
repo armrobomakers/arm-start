@@ -68,7 +68,7 @@ function setMeta(selector, value) {
 
 function applyGiveawayMeta() {
   document.title = "ARM — Розыгрыш техники Apple";
-  setMeta('meta[name="description"]', "Рейтинг участников розыгрыша техники Apple ARM: финал при 100 купонах, 3 октября 2026 года в Красноярске, призы MacBook Pro, iPhone 17 Pro Max и AirPods 3 Pro.");
+  setMeta('meta[name="description"]', "Рейтинг участников розыгрыша техники Apple ARM: финал при 100 купонах, 3 октября 2026 года в Красноярске, призы MacBook Air, iPhone 17 Pro и AirPods 3 Pro.");
   setMeta('meta[property="og:title"]', "ARM — Розыгрыш техники Apple");
   setMeta('meta[property="og:description"]', "Розыгрыш 3 октября 2026 года в Красноярске на конференции. Цель — 100 купонов, победителей определим через лототрон.");
   setMeta('meta[property="og:image"]', `${SITE_URL}/og-cover.png`);
@@ -397,7 +397,7 @@ export function GiveawayPage() {
           <div className="prizes-panel-heading">
             <span>ПРИЗЫ РОЗЫГРЫША</span>
             <h3 id="giveaway-prizes-title">Техника Apple</h3>
-            <p>В финале разыгрываем MacBook Pro, iPhone 17 Pro Max и AirPods 3 Pro.</p>
+            <p>В финале разыгрываем MacBook Air, iPhone 17 Pro и AirPods 3 Pro.</p>
           </div>
 
           <div className="apple-prizes-grid">
