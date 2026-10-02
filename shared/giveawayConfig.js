@@ -14,8 +14,8 @@ export const GIVEAWAY_CONFIG = Object.freeze({
     drawMethod: "лототрон",
   }),
   prizes: Object.freeze([
-    Object.freeze({ quantity: 1, label: "MacBook Pro" }),
-    Object.freeze({ quantity: 2, label: "iPhone 17 Pro Max" }),
+    Object.freeze({ quantity: 1, label: "MacBook Air" }),
+    Object.freeze({ quantity: 2, label: "iPhone 17 Pro" }),
     Object.freeze({ quantity: 3, label: "AirPods 3 Pro" }),
   ]),
 });
